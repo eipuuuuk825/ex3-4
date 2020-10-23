@@ -4,7 +4,7 @@ float[][] g_Data = new float[g_Data_num][g_Data_lng];
 
 float g_t = 0, g_dt = 0;
 float[] g_a = {0, 0, 0} , g_ac = {0, 0, 0} , g_aw = {0, 0, 0} , g_af = {0, 0, 0} , g_av = {0, 0, 0};
-float[] q = new float[4];
+float[] g_q = new float[4];
 float[] hq = {0, 0, 0, 1};
 float[] Euler = new float[3]; // psi, theta, phi
 float[] b = {0, 0, 0, 0, 0};
@@ -74,7 +74,7 @@ Yubi g_yubi_naka = new Yubi();
 void buildHandShape() {
 	/* hito */
 	pushMatrix();
-	translate(- 20, 0, - 50 - 100 * g_yubi_hito.m_b);
+	translate( - 20, 0, - 50 - 100 * g_yubi_hito.m_b);
 	sphere(g_R_YUBI);
 	
 	/* zahyoushutoku */
@@ -108,7 +108,7 @@ void getVals() {
 	g_dt = float(co[0]) - g_t;
 	g_t = float(co[0]);
 	for (int i = 0; i < 3; i++) g_a[i] = float(co[i + 1]);
-	for (int i = 0; i < 4; i++) q[i] = float(co[i + 4]);
+	for (int i = 0; i < 4; i++) g_q[i] = float(co[i + 4]);
 	for (int i = 0; i < 5; i++) b[i] = float(co[i + 8]);
 	for (int i = 0; i < 5; i++) if (b[i] > 20.0) b[i] = 20.0;
 	h_flag  = int(co[13]);
@@ -146,7 +146,7 @@ void draw() {
 	getVals();
 	
 	if (h_flag == 1) {
-		hq = quatConjugate(q);
+		hq = quatConjugate(g_q);
 		
 		for (int i = 0; i < 3; i++) {
 			g_ac[i] = 0;
@@ -157,10 +157,10 @@ void draw() {
 	}
 	
 	if (hq != null) { // use home quaternion
-		quaternionToEuler(quatProd(hq, q), Euler);
+		quaternionToEuler(quatProd(hq, g_q), Euler);
 		text("Disable home position by pressing \"n\"", 20, VIEW_SIZE_Y - 30);
 	} else {
-		quaternionToEuler(q, Euler);
+		quaternionToEuler(g_q, Euler);
 		text("Point FreeIMU's X axis to your monitor then press \"h\"", 20, VIEW_SIZE_Y - 30);
 	}
 	
@@ -173,7 +173,7 @@ void draw() {
 	
 	textFont(font, 20);
 	textAlign(LEFT, TOP);
-	text("Acc.:[" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
+	text("Acc. : [" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
 		"Time : " + nfs(g_dt, 0, 2) + "[ms]", 20, 20);
 	text("Euler angles : \n" + 
 		"Yaw(psi)  : "   + nfs(degrees(Euler[0]), 0, 2) + "\n" + 
@@ -218,7 +218,7 @@ void keyPressed() {
 		println("pressed h");
 		
 		// set hq the home quaternion as the quatnion conjugate coming from the sensor fusion
-		hq = quatConjugate(q);
+		hq = quatConjugate(g_q);
 		
 		for (int i = 0; i < 3; i++) {
 			g_ac[i] = 0;
@@ -242,9 +242,9 @@ void drawHand() {
 	
 	pushMatrix();
 	translate(VIEW_SIZE_X / 2, VIEW_SIZE_Y / 2 + 50, 0);
-	rotateZ(- Euler[2]);
-	rotateY(- Euler[0]);
-	rotateX(- Euler[1]);
+	rotateZ( - Euler[2]);
+	rotateY( - Euler[0]);
+	rotateX( - Euler[1]);
 	
 	buildHandShape();
 	
@@ -284,9 +284,9 @@ float[] quatConjugate(float[] quat) {
 float[] quatTranslate(float[] x) {
 	float[] y = new float[3];
 	
-	y[2] = - ((sq(q[0]) + sq(q[1]) - sq(q[2]) - sq(q[3])) * x[0] + 2 * (q[1] * q[2] - q[0] * q[3]) * x[1] + 2 * (q[1] * q[3] + q[0] * q[2]) * x[2]);
-	y[0] = - (2 * (q[1] * q[2] + q[0] * q[3]) * x[0] + (sq(q[0]) - sq(q[1]) + sq(q[2]) - sq(q[3])) * x[1] + 2 * (q[2] * q[3] - q[0] * q[1]) * x[2]);
-	y[1] = - (2 * (q[1] * q[3] - q[0] * q[2]) * x[0] + 2 * (q[2] * q[3] + q[0] * q[1]) * x[1] + (sq(q[0]) - sq(q[1]) - sq(q[2]) + sq(q[3])) * x[2]);
+	y[2] = - ((sq(g_q[0]) + sq(g_q[1]) - sq(g_q[2]) - sq(g_q[3])) * x[0] + 2 * (g_q[1] * g_q[2] - g_q[0] * g_q[3]) * x[1] + 2 * (g_q[1] * g_q[3] + g_q[0] * g_q[2]) * x[2]);
+	y[0] = - (2 * (g_q[1] * g_q[2] + g_q[0] * g_q[3]) * x[0] + (sq(g_q[0]) - sq(g_q[1]) + sq(g_q[2]) - sq(g_q[3])) * x[1] + 2 * (g_q[2] * g_q[3] - g_q[0] * g_q[1]) * x[2]);
+	y[1] = - (2 * (g_q[1] * g_q[3] - g_q[0] * g_q[2]) * x[0] + 2 * (g_q[2] * g_q[3] + g_q[0] * g_q[1]) * x[1] + (sq(g_q[0]) - sq(g_q[1]) - sq(g_q[2]) + sq(g_q[3])) * x[2]);
 	
 	return y;
 }
