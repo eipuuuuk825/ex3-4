@@ -5,17 +5,17 @@ float[][] g_Data = new float[g_Data_num][g_Data_lng];
 float g_t = 0, g_dt = 0;
 float[] g_a = {0, 0, 0} , g_ac = {0, 0, 0} , g_aw = {0, 0, 0} , g_af = {0, 0, 0} , g_av = {0, 0, 0};
 float[] g_q = new float[4];
-float[] hq = {0, 0, 0, 1};
-float[] Euler = new float[3]; // psi, theta, phi
-float[] b = {0, 0, 0, 0, 0};
-PFont font;
+float[] g_hq = {0, 0, 0, 1};
+float[] g_Euler = new float[3]; // psi, theta, phi
+float[] g_b = {0, 0, 0, 0, 0};
+PFont g_font;
 final int VIEW_SIZE_X = 800, VIEW_SIZE_Y = 600;
 
-//String filename = "HandMotion0.csv";
-String filename = "MyMotion.csv";
-String[] lines;
-int ln = 0;
-int h_flag = 0;
+//String g_filename = "HandMotion0.csv";
+String g_filename = "MyMotion.csv";
+String[] g_lines;
+int g_ln = 0;
+int g_h_flag = 0;
 
 /* --------------------------------------------------------------------------- */
 /* --------------------------------------------------------------------------- */
@@ -103,15 +103,15 @@ void drawObstacle() {
 /* --------------------------------------------------------------------------- */
 
 void getVals() {  
-	String[] co = split(lines[ln], ',');
-	if (ln + 1 < lines.length - 1) ln++;
+	String[] co = split(g_lines[g_ln], ',');
+	if (g_ln + 1 < g_lines.length - 1) g_ln++;
 	g_dt = float(co[0]) - g_t;
 	g_t = float(co[0]);
 	for (int i = 0; i < 3; i++) g_a[i] = float(co[i + 1]);
 	for (int i = 0; i < 4; i++) g_q[i] = float(co[i + 4]);
-	for (int i = 0; i < 5; i++) b[i] = float(co[i + 8]);
-	for (int i = 0; i < 5; i++) if (b[i] > 20.0) b[i] = 20.0;
-	h_flag  = int(co[13]);
+	for (int i = 0; i < 5; i++) g_b[i] = float(co[i + 8]);
+	for (int i = 0; i < 5; i++) if (g_b[i] > 20.0) g_b[i] = 20.0;
+	g_h_flag  = int(co[13]);
 	delay(80);
 	
 	/* b seikika */
@@ -120,9 +120,9 @@ void getVals() {
 	final int YUBI_NAKA = 1;
 	
 	for (int i = 0;i < 5;i++) {
-		if (b[i] > g_b_max[i])g_b_max[i] = b[i];
-		if (b[i] < g_b_min[i])g_b_min[i] = b[i];
-		float norm = (b[i] - g_b_min[i]) / (g_b_max[i] - g_b_min[i]); 
+		if (g_b[i] > g_b_max[i])g_b_max[i] = g_b[i];
+		if (g_b[i] < g_b_min[i])g_b_min[i] = g_b[i];
+		float norm = (g_b[i] - g_b_min[i]) / (g_b_max[i] - g_b_min[i]); 
 		switch(i)
 		{
 			case YUBI_OYA:
@@ -145,8 +145,8 @@ void draw() {
 	
 	getVals();
 	
-	if (h_flag == 1) {
-		hq = quatConjugate(g_q);
+	if (g_h_flag == 1) {
+		g_hq = quatConjugate(g_q);
 		
 		for (int i = 0; i < 3; i++) {
 			g_ac[i] = 0;
@@ -156,11 +156,11 @@ void draw() {
 		}
 	}
 	
-	if (hq != null) { // use home quaternion
-		quaternionToEuler(quatProd(hq, g_q), Euler);
+	if (g_hq != null) { // use home quaternion
+		quaternionToEuler(quatProd(g_hq, g_q), g_Euler);
 		text("Disable home position by pressing \"n\"", 20, VIEW_SIZE_Y - 30);
 	} else {
-		quaternionToEuler(g_q, Euler);
+		quaternionToEuler(g_q, g_Euler);
 		text("Point FreeIMU's X axis to your monitor then press \"h\"", 20, VIEW_SIZE_Y - 30);
 	}
 	
@@ -171,15 +171,15 @@ void draw() {
 	g_av[1] = - g_af[1] + 9.61;
 	g_av[2] = - g_af[2];
 	
-	textFont(font, 20);
+	textFont(g_font, 20);
 	textAlign(LEFT, TOP);
 	text("Acc. : [" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
 		"Time : " + nfs(g_dt, 0, 2) + "[ms]", 20, 20);
 	text("Euler angles : \n" + 
-		"Yaw(psi)  : "   + nfs(degrees(Euler[0]), 0, 2) + "\n" + 
-		"Pitch(theta) : " + nfs(degrees(Euler[1]), 0, 2) + "\n" + 
-		"Roll(phi)  : "  + nfs(degrees(Euler[2]), 0, 2), 350, 20);
-	text("Flexions : \n" + nfs(b[0], 0, 2) + "\n" + nfs(b[1], 0, 2) + "\n" + nfs(b[2], 0, 2) + "\n" + nfs(b[3], 0, 2) + "\n" + nfs(b[4], 0, 2), 600, 20);
+		"Yaw(psi)  : "   + nfs(degrees(g_Euler[0]), 0, 2) + "\n" + 
+		"Pitch(theta) : " + nfs(degrees(g_Euler[1]), 0, 2) + "\n" + 
+		"Roll(phi)  : "  + nfs(degrees(g_Euler[2]), 0, 2), 350, 20);
+	text("Flexions : \n" + nfs(g_b[0], 0, 2) + "\n" + nfs(g_b[1], 0, 2) + "\n" + nfs(g_b[2], 0, 2) + "\n" + nfs(g_b[3], 0, 2) + "\n" + nfs(g_b[4], 0, 2), 600, 20);
 	
 	drawHand();
 	drawObstacle();
@@ -217,8 +217,8 @@ void keyPressed() {
 	if (key == 'h') {
 		println("pressed h");
 		
-		// set hq the home quaternion as the quatnion conjugate coming from the sensor fusion
-		hq = quatConjugate(g_q);
+		// set g_hq the home quaternion as the quatnion conjugate coming from the sensor fusion
+		g_hq = quatConjugate(g_q);
 		
 		for (int i = 0; i < 3; i++) {
 			g_ac[i] = 0;
@@ -228,7 +228,7 @@ void keyPressed() {
 		}
 	} else if (key == 'n') {
 		println("pressed n");
-		hq = null;
+		g_hq = null;
 	}
 }
 
@@ -242,9 +242,9 @@ void drawHand() {
 	
 	pushMatrix();
 	translate(VIEW_SIZE_X / 2, VIEW_SIZE_Y / 2 + 50, 0);
-	rotateZ( - Euler[2]);
-	rotateY( - Euler[0]);
-	rotateX( - Euler[1]);
+	rotateZ( - g_Euler[2]);
+	rotateY( - g_Euler[0]);
+	rotateX( - g_Euler[1]);
 	
 	buildHandShape();
 	
@@ -329,7 +329,7 @@ void settings() {
 }
 
 void setup() {
-	font = createFont("Courier", 32);
+	g_font = createFont("Courier", 32);
 	
 	for (int i = 0; i < g_Data_num; i++) 
 		for (int j = 0; j < g_Data_lng; j++) 
@@ -337,5 +337,5 @@ void setup() {
 	
 	delay(100);
 	
-	lines = loadStrings(filename);
+	g_lines = loadStrings(g_filename);
 }
