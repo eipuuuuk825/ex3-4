@@ -42,11 +42,11 @@ class Yubi
 	float m_b;	/* 屈伸度合い */
 	float m_r;	/* 指先当たり判定の球の半径 */
 	
-	Yubi(color c, float r){
+	Yubi(color c, float r) {
 		m_c = c;
 		m_r = r;
 	}
-
+	
 	void get_pos() {
 		m_p.m_x = modelX(0, 0, 0);
 		m_p.m_y = modelY(0, 0, 0);
@@ -70,11 +70,17 @@ class Obstacle
 		m_r = r_self;
 	}
 	
-	void draw(Yubi yubi) {
-		if (yubi.get_dist(m_p) < yubi.m_r + this.m_r)
-			fill(yubi.m_c);
-		else
-			fill(#888888);
+	void draw(Yubi yubi[]) {
+		fill(g_DEFAULT_COLOR);
+		for (int i = 0;i < yubi.length;i++)
+		{
+			if (yubi[i].get_dist(m_p) < yubi[i].m_r + this.m_r)
+			{
+				fill(yubi[i].m_c);
+				break;
+			}
+		}
+		
 		pushMatrix();
 		translate(m_p.m_x, m_p.m_y, m_p.m_z);
 		sphere(m_r);
@@ -89,19 +95,35 @@ float[] g_b_min = {20, 20, 20, 20, 20};
 /* param */
 final float g_INIT_BEND1 = PI * 0.02;	/* 骨１の初期屈伸角度 */
 final float g_INIT_BEND2 = PI * 0.04;	/* 骨２の初期屈伸角度 */
+final color g_DEFAULT_COLOR = #777777;	/* 通常時の色 */
+final color g_HAND_COLOR = #ffffff;		/* 手の色 */
+final int g_YUBI_OYA = 0;
+final int g_YUBI_HITO = 1;
+final int g_YUBI_NAKA = 2;
+final float g_HAND_SIZE = 400;	/* 手の大きさ */
 
 /* 指 */
-enum YubiNum{
-	Oya,
-	Hito,
-	Naka
-};
-Yubi g_yubi_oya = new Yubi(#ff0000, 1);
-Yubi g_yubi_hito = new Yubi(#00ff00, 1);
-Yubi g_yubi_naka = new Yubi(#0000ff, 1);
+Yubi[] g_yubi = {
+	new Yubi(#ff0000, 1),
+		new Yubi(#00ff00, 1),
+		new Yubi(#0000ff, 1)
+	};
 
 /* 障害物 */
-Obstacle g_obs1 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 100, VIEW_SIZE_Y / 2 + 50, - 150), 50);
+Obstacle g_obs1 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 150, VIEW_SIZE_Y / 2 + 50, - 150), 80);
+Obstacle g_obs2 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 50, VIEW_SIZE_Y / 2 + 175, - 150), 80);
+Obstacle g_obs3 = new Obstacle(new Point(VIEW_SIZE_X / 2 + 125, VIEW_SIZE_Y / 2 + 300, - 300), 80);
+
+/*-----------------------------------------------
+*
+* 障害物を描画
+*
+-----------------------------------------------*/
+void drawObstacle() {
+	g_obs1.draw(g_yubi);
+	g_obs2.draw(g_yubi);
+	g_obs3.draw(g_yubi);
+}
 
 /*-----------------------------------------------
 *
@@ -126,31 +148,21 @@ void drawHand() {
 	// rotateX(PI / 2); 		/* 見やすくするために回転 */
 	// rotateZ(- PI * 0.4);	/* 見やすくするために回転 */
 	
-	final float hand_size = 400;
-	final float d = hand_size * 0.05;
-	fill(88, 88, 88, 128);
-	drawOya(hand_size, d);
-	drawHito(hand_size, d);
-	drawNaka(hand_size, d);
-	drawKusuri(hand_size, d);
-	drawKo(hand_size, d);
-	fill(#888888);
+	final float d = g_HAND_SIZE * 0.05;
+	fill(#ffffff);
+	drawOya(g_HAND_SIZE, d);
+	drawHito(g_HAND_SIZE, d);
+	drawNaka(g_HAND_SIZE, d);
+	drawKusuri(g_HAND_SIZE, d);
+	drawKo(g_HAND_SIZE, d);
+	fill(g_DEFAULT_COLOR);
 	
 	popMatrix();
 }
 
 /*-----------------------------------------------
 *
-* 障害物を描画
-*
------------------------------------------------*/
-void drawObstacle() {
-	g_obs1.draw(g_yubi_hito);
-}
-
-/*-----------------------------------------------
-*
-* 親指を描画，インタラクションの処理
+* 親指を描画
 *
 -----------------------------------------------*/
 void drawOya(float hand_size, float d) {
@@ -171,14 +183,15 @@ void drawOya(float hand_size, float d) {
 	/* 1 */
 	translate(0, 0, h_hira);
 	rotateY(- PI * 0.1);
-	rotateY( - g_yubi_oya.m_b * PI * 0.2);/* 屈伸 */
+	rotateY( - g_yubi[g_YUBI_OYA].m_b * PI * 0.2);/* 屈伸 */
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	rotateY( - g_yubi_oya.m_b * PI * 0.5);/* 屈伸 */
+	rotateY( - g_yubi[g_YUBI_OYA].m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_2, h_2);
 	/* 座標取得 */
-	g_yubi_oya.get_pos();
+	translate(0, 0, h_2);
+	g_yubi[g_YUBI_OYA].get_pos();
 	popMatrix();
 }
 
@@ -207,21 +220,22 @@ void drawHito(float hand_size, float d) {
 	translate(0, 0, h_hira);
 	rotateY(- PI * 0.04);
 	rotateX( - g_INIT_BEND1);
-	rotateX( - g_yubi_hito.m_b * PI * 0.25);/* 屈伸 */
+	rotateX( - g_yubi[g_YUBI_HITO].m_b * PI * 0.25);/* 屈伸 */
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(PI * 0.005);
 	rotateX( - g_INIT_BEND2);
-	rotateX( - g_yubi_hito.m_b * PI * 0.5);/* 屈伸 */
+	rotateX( - g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
 	rotateY(PI * 0.005);
-	rotateX( - g_yubi_hito.m_b * PI * 0.5);/* 屈伸 */
+	rotateX( - g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_3, h_3);
 	/* 座標取得 */
-	g_yubi_hito.get_pos();
+	translate(0, 0, h_3);
+	g_yubi[g_YUBI_HITO].get_pos();
 	popMatrix();
 }
 
@@ -249,19 +263,20 @@ void drawNaka(float hand_size, float d) {
 	/* 1 */
 	translate(0, 0, h_hira);
 	rotateY( - PI * 0.02);
-	rotateX(- g_yubi_naka.m_b * PI * 0.25);/* 屈伸 */
+	rotateX(- g_yubi[g_YUBI_NAKA].m_b * PI * 0.25);/* 屈伸 */
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateX( - g_INIT_BEND2);
-	rotateX(- g_yubi_naka.m_b * PI * 0.5);/* 屈伸 */
+	rotateX(- g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
-	rotateX(- g_yubi_naka.m_b * PI * 0.5);/* 屈伸 */
+	rotateX(- g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_3, h_3);
 	/* 座標取得 */
-	g_yubi_naka.get_pos();
+	translate(0, 0, h_3);
+	g_yubi[g_YUBI_NAKA].get_pos();
 	popMatrix();
 }
 
@@ -347,7 +362,7 @@ void drawKo(float hand_size, float d) {
 void check_axis()
 {
 	pushMatrix();
-	fill(#888888);
+	fill(g_DEFAULT_COLOR);
 	sphere(30);
 	translate(0, 0, 50);
 	fill(#0000ff);
@@ -388,13 +403,13 @@ void getVals() {
 		switch(i)
 		{
 			case YUBI_OYA:
-			g_yubi_oya.m_b = norm;
+			g_yubi[g_YUBI_OYA].m_b = norm;
 			break;
 			case YUBI_HITO:
-			g_yubi_hito.m_b = norm;
+			g_yubi[g_YUBI_HITO].m_b = norm;
 			break;
 			case YUBI_NAKA:
-			g_yubi_naka.m_b = norm;
+			g_yubi[g_YUBI_NAKA].m_b = norm;
 			break;
 		}
 	}
