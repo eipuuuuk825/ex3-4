@@ -79,10 +79,10 @@ void drawHand() {
 	shininess(5.0);
 	
 	pushMatrix();
-	translate(VIEW_SIZE_X / 2 + 170, VIEW_SIZE_Y / 2 + 50, 0);
-	rotateZ( - g_Euler[2]);
-	rotateY( - g_Euler[0]);
-	rotateX( - g_Euler[1]);
+	translate(VIEW_SIZE_X / 2 + 170, VIEW_SIZE_Y / 2 + 200, 0);
+	// rotateZ( - g_Euler[2]);
+	// rotateY( - g_Euler[0]);
+	// rotateX( - g_Euler[1]);
 	
 	buildHandShape();
 	
@@ -90,24 +90,53 @@ void drawHand() {
 }
 
 void buildHandShape() {
-	final float hand_size = 150;
+	final float hand_size = 400;
 	final float first_forward = 50;
+	final float d = hand_size * 0.05;
 	
 	pushMatrix();
-	// /* base */
-	// sphere(20);
-	// /* naka */
-	// pushMatrix();
-	// translate(0,  0, -first_forward);
-	// drawCylinder(10, 0, 10, hand_size);
-	// popMatrix();
+	rotateY(PI);
+	rotateX(PI / 2); /* tmp */
+	// rotateZ( - PI*0.4);
 	
-	// translate(-hand_size/2, 0, 0);
-	// drawCylinder(10, 0, 10, hand_size);
-	// translate(hand_size, 0, 0);
-	// drawCylinder(10, 0, 10, hand_size);
-	// translate(0, 0, 30);
-	// sphere(10);
+	/* oya */
+	pushMatrix();
+	rotateY(PI * 0.12);
+	rotateX(- PI * 0.1);
+	translate(hand_size * 0.08, 0, hand_size * 0.12);
+	fill(#ff0000);
+	drawCylinder(10, 0, d * 0.8, hand_size * 0.2);
+	fill(#888888);
+	popMatrix();
+	
+	/* hito */
+	pushMatrix();
+	rotateY(PI * 0.035);
+	translate(hand_size * 0.08, 0, hand_size * 0.12);
+	drawCylinder(10, 0, d, hand_size * 0.38);
+	popMatrix();
+	
+	/* naka */
+	pushMatrix();
+	rotateX(PI * 0.015);
+	rotateY(PI * 0.024);
+	translate(0, 0, hand_size * 0.05);
+	drawCylinder(10, 0, d * 1.2, hand_size * 0.45);
+	popMatrix();
+	
+	/* kusuri */
+	pushMatrix();
+	rotateY(- PI * 0.01);
+	translate(- hand_size * 0.08, 0, hand_size * 0.12);
+	drawCylinder(10, 0, d, hand_size * 0.38);
+	popMatrix();
+	
+	/* ko */
+	pushMatrix();
+	rotateY(- PI * 0.035);
+	translate(- hand_size * 0.08 * 2, 0, hand_size * 0.12);
+	drawCylinder(10, 0, d, hand_size * 0.38);
+	popMatrix();
 	
 	popMatrix();
 	
@@ -126,11 +155,27 @@ void drawObstacle() {
 	else
 		fill(#888888);
 	
-	pushMatrix();
-	translate(g_OBJ_POS.m_x, g_OBJ_POS.m_y, g_OBJ_POS.m_z);
-	sphere(g_R_OBJ);
-	popMatrix();
+	// pushMatrix();
+	// translate(g_OBJ_POS.m_x, g_OBJ_POS.m_y, g_OBJ_POS.m_z);
+	// sphere(g_R_OBJ);
+	// popMatrix();
+	// popMatrix();
+}
 
+void check_axis()
+{
+	pushMatrix();
+	fill(#888888);
+	sphere(30);
+	translate(0, 0, 50);
+	fill(#0000ff);
+	sphere(10);/* z */
+	translate(50, 0, - 50);
+	fill(#ff0000);
+	sphere(10);/* x */
+	translate( - 50, 50, 0);
+	fill(#00ff00);
+	sphere(10);/* y */
 	popMatrix();
 }
 
