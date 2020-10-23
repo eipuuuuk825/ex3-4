@@ -106,6 +106,8 @@ void buildHandShape() {
 	// drawCylinder(10, 0, 10, hand_size);
 	// translate(hand_size, 0, 0);
 	// drawCylinder(10, 0, 10, hand_size);
+	// translate(0, 0, 30);
+	// sphere(10);
 	
 	popMatrix();
 	
@@ -127,6 +129,8 @@ void drawObstacle() {
 	pushMatrix();
 	translate(g_OBJ_POS.m_x, g_OBJ_POS.m_y, g_OBJ_POS.m_z);
 	sphere(g_R_OBJ);
+	popMatrix();
+
 	popMatrix();
 }
 
@@ -306,32 +310,32 @@ float[] quatTranslate(float[] x) {
 // http://vormplus.be/blog/article/drawing-a-cylinder-with-processing
 void drawCylinder(int sides, float r1, float r2, float h) {
 	pushMatrix();
-	translate(0, 0, - h / 2);
+	translate(0, 0, h / 2);
 	float angle = 360 / sides;
 	float halfHeight = h / 2;
 	// top
 	beginShape();
 	for (int i = 0; i < sides; i++) {
-		float x = cos(radians(i * angle)) * r1;
-		float y = sin(radians(i * angle)) * r1;
+		float x = cos(radians(i * angle)) * r2;
+		float y = sin(radians(i * angle)) * r2;
 		vertex(x, y, - halfHeight);
 	}
 	endShape(CLOSE);
 	// bottom
 	beginShape();
 	for (int i = 0; i < sides; i++) {
-		float x = cos(radians(i * angle)) * r2;
-		float y = sin(radians(i * angle)) * r2;
+		float x = cos(radians(i * angle)) * r1;
+		float y = sin(radians(i * angle)) * r1;
 		vertex(x, y, halfHeight);
 	}
 	endShape(CLOSE);
 	// draw body
 	beginShape(TRIANGLE_STRIP);
 	for (int i = 0; i < sides + 1; i++) {
-		float x1 = cos(radians(i * angle)) * r1;
-		float y1 = sin(radians(i * angle)) * r1;
-		float x2 = cos(radians(i * angle)) * r2;
-		float y2 = sin(radians(i * angle)) * r2;
+		float x1 = cos(radians(i * angle)) * r2;
+		float y1 = sin(radians(i * angle)) * r2;
+		float x2 = cos(radians(i * angle)) * r1;
+		float y2 = sin(radians(i * angle)) * r1;
 		vertex(x1, y1, - halfHeight);
 		vertex(x2, y2, halfHeight);
 	}
