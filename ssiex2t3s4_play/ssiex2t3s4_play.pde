@@ -52,7 +52,7 @@ class Yubi
 	}
 }
 
-/* b norm */
+/* b の正規化 */
 float[] g_b_max = {0, 0, 0, 0, 0};
 float[] g_b_min = {20, 20, 20, 20, 20};
 
@@ -60,14 +60,19 @@ float[] g_b_min = {20, 20, 20, 20, 20};
 final float g_R_YUBI = 10;
 final float g_R_OBJ = 30;
 final Point g_OBJ_POS = new Point(VIEW_SIZE_X / 2 - 50, VIEW_SIZE_Y / 2 + 50, - 150);
-final float g_INIT_BEND1 = PI * 0.02;
-final float g_INIT_BEND2 = PI * 0.04;
+final float g_INIT_BEND1 = PI * 0.02;/* 骨１の初期屈伸角度 */
+final float g_INIT_BEND2 = PI * 0.04;/* 骨２の初期屈伸角度 */
 
-/* yubi */
+/* 指 */
 Yubi g_yubi_oya = new Yubi();
 Yubi g_yubi_hito = new Yubi();
 Yubi g_yubi_naka = new Yubi();
 
+/*-----------------------------------------------
+*
+* 手を描画
+*
+-----------------------------------------------*/
 void drawHand() {  
 	noStroke();
 	ambientLight(189, 189, 189);
@@ -78,24 +83,16 @@ void drawHand() {
 	
 	pushMatrix();
 	translate(VIEW_SIZE_X / 2 + 170, VIEW_SIZE_Y / 2 + 250, 0);
-	rotateZ(- g_Euler[2]);
-	rotateY(- g_Euler[0]);
-	rotateX(- g_Euler[1]);
+	rotateZ( - g_Euler[2]);
+	rotateY( - g_Euler[0]);
+	rotateX( - g_Euler[1]);
+	rotateY(PI);
 	
-	buildHandShape();
+	// rotateX(PI / 2); 		/* 見やすくするために回転 */
+	// rotateZ(- PI * 0.4);	/* 見やすくするために回転 */
 	
-	popMatrix();
-}
-
-void buildHandShape() {
 	final float hand_size = 350;
 	final float d = hand_size * 0.05;
-	
-	pushMatrix();
-	rotateY(PI);
-	rotateX(PI / 2); /* tmp */
-	// rotateZ( - PI*0.4);
-	
 	drawOya(hand_size, d);
 	drawHito(hand_size, d);
 	drawNaka(hand_size, d);
@@ -103,15 +100,13 @@ void buildHandShape() {
 	drawKo(hand_size, d);
 	
 	popMatrix();
-	
-	/* hito */
-	// pushMatrix();
-	// translate( - 20, 0, - 50 - 100 * g_yubi_hito.m_b);
-	// sphere(g_R_YUBI);
-	// g_yubi_hito.get_pos();
-	// popMatrix();
 }
 
+/*-----------------------------------------------
+*
+* 親指を描画
+*
+-----------------------------------------------*/
 void drawOya(float hand_size, float d) {
 	final float h_hira = hand_size * 0.19;
 	final float h_1 = h_hira * 0.9;
@@ -125,23 +120,28 @@ void drawOya(float hand_size, float d) {
 	fill(#ff0000);
 	/* hira */
 	rotateY(PI * 0.12);
-	rotateX(- PI * 0.1);
+	rotateX( - PI * 0.1);
 	translate(hand_size * 0.08, 0, hand_size * 0.14);
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
-	rotateY( - PI * 0.1);
-	rotateY(- g_yubi_oya.m_b * PI * 0.2);/* 屈伸 */
+	rotateY(- PI * 0.1);
+	rotateY( - g_yubi_oya.m_b * PI * 0.2);/* 屈伸 */
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	rotateY(- g_yubi_oya.m_b * PI * 0.5);/* 屈伸 */
+	rotateY( - g_yubi_oya.m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_2, h_2);
 	
 	fill(#888888);
 	popMatrix();
 }
 
+/*-----------------------------------------------
+*
+* 人差し指を描画
+*
+-----------------------------------------------*/
 void drawHito(float hand_size, float d) {
 	final float h_hira = hand_size * 0.38;
 	final float h_1 = h_hira * 0.55;
@@ -160,24 +160,29 @@ void drawHito(float hand_size, float d) {
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
-	rotateY( - PI * 0.04);
-	rotateX(-g_INIT_BEND1);
-	rotateX(- g_yubi_hito.m_b * PI * 0.25);
+	rotateY(- PI * 0.04);
+	rotateX( - g_INIT_BEND1);
+	rotateX( - g_yubi_hito.m_b * PI * 0.25);/* 屈伸 */
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(PI * 0.005);
-	rotateX(-g_INIT_BEND2);
-	rotateX(- g_yubi_hito.m_b * PI * 0.5);
+	rotateX( - g_INIT_BEND2);
+	rotateX( - g_yubi_hito.m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
 	rotateY(PI * 0.005);
-	rotateX(- g_yubi_hito.m_b * PI * 0.5);
+	rotateX( - g_yubi_hito.m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_3, h_3);
 	popMatrix();
 }
 
+/*-----------------------------------------------
+*
+* 中指を描画
+*
+-----------------------------------------------*/
 void drawNaka(float hand_size, float d) {
 	final float h_hira = hand_size * 0.45;
 	final float h_1 = h_hira * 0.5;
@@ -192,28 +197,30 @@ void drawNaka(float hand_size, float d) {
 	pushMatrix();
 	/* hira */
 	translate(0, 0, hand_size * 0.05);
-	rotateX(PI * 0.015);
 	rotateY(PI * 0.02);
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
-	rotateY(- PI * 0.02);
-	rotateX( - PI * 0.015);
-	rotateX( - g_yubi_naka.m_b * PI * 0.25);
+	rotateY( - PI * 0.02);
+	rotateX(- g_yubi_naka.m_b * PI * 0.25);/* 屈伸 */
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	rotateX( - PI * 0.015);
-	rotateX(-g_INIT_BEND2);
-	rotateX( - g_yubi_naka.m_b * PI * 0.5);
+	rotateX( - g_INIT_BEND2);
+	rotateX(- g_yubi_naka.m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
-	rotateX( - g_yubi_naka.m_b * PI * 0.5);
+	rotateX(- g_yubi_naka.m_b * PI * 0.5);/* 屈伸 */
 	drawCylinder(d_3, h_3);
 	popMatrix();
 }
 
+/*-----------------------------------------------
+*
+* 薬指を描画
+*
+-----------------------------------------------*/
 void drawKusuri(float hand_size, float d) {
 	final float h_hira = hand_size * 0.39;
 	final float h_1 = h_hira * 0.5;
@@ -227,17 +234,17 @@ void drawKusuri(float hand_size, float d) {
 	
 	pushMatrix();
 	/* hira */
-	translate(- hand_size * 0.08, 0, hand_size * 0.11);
-	rotateY(- PI * 0.01);
+	translate( - hand_size * 0.08, 0, hand_size * 0.11);
+	rotateY( - PI * 0.01);
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
 	rotateY(PI * 0.01);
-	rotateX(-g_INIT_BEND1);
+	rotateX( - g_INIT_BEND1);
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	rotateX(-g_INIT_BEND2);
+	rotateX( - g_INIT_BEND2);
 	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
@@ -245,6 +252,11 @@ void drawKusuri(float hand_size, float d) {
 	popMatrix();
 }
 
+/*-----------------------------------------------
+*
+* 小指を描画
+*
+-----------------------------------------------*/
 void drawKo(float hand_size, float d) {
 	final float h_hira = hand_size * 0.38;
 	final float h_1 = h_hira * 0.4;
@@ -258,18 +270,18 @@ void drawKo(float hand_size, float d) {
 	
 	pushMatrix();
 	/* hira */
-	translate(- hand_size * 0.08 * 2, 0, hand_size * 0.12);
-	rotateY(- PI * 0.035);
+	translate( - hand_size * 0.08 * 2, 0, hand_size * 0.12);
+	rotateY( - PI * 0.035);
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
 	rotateY(PI * 0.037);
-	rotateX(-g_INIT_BEND1);
+	rotateX( - g_INIT_BEND1);
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(PI * 0.01);
-	rotateX(-g_INIT_BEND2);
+	rotateX( - g_INIT_BEND2);
 	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
@@ -278,6 +290,11 @@ void drawKo(float hand_size, float d) {
 	popMatrix();
 }
 
+/*-----------------------------------------------
+*
+* 障害物を描画
+*
+-----------------------------------------------*/
 void drawObstacle() {
 	if (g_yubi_hito.get_dist(g_OBJ_POS) < g_R_YUBI + g_R_OBJ)
 		fill(#ff0000);
@@ -296,6 +313,11 @@ void drawObstacle() {
 	//   popMatrix();
 }
 
+/*-----------------------------------------------
+*
+* 軸の方向を確認するためのオブジェクトを描画
+*
+-----------------------------------------------*/
 void check_axis()
 {
 	pushMatrix();
@@ -307,7 +329,7 @@ void check_axis()
 	translate(50, 0, - 50);
 	fill(#ff0000);
 	sphere(10);/* x */
-	translate( - 50, 50, 0);
+	translate(- 50, 50, 0);
 	fill(#00ff00);
 	sphere(10);/* y */
 	popMatrix();
@@ -387,7 +409,7 @@ void draw() {
 	
 	textFont(g_font, 20);
 	textAlign(LEFT, TOP);
-	text("Acc. : [" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
+	text("Acc.:[" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
 		"Time : " + nfs(g_dt, 0, 2) + "[ms]", 20, 20);
 	text("Euler angles : \n" + 
 		"Yaw(psi)  : "   + nfs(degrees(g_Euler[0]), 0, 2) + "\n" + 
