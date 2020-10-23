@@ -11,8 +11,8 @@ float[] g_b = {0, 0, 0, 0, 0};
 PFont g_font;
 final int VIEW_SIZE_X = 800, VIEW_SIZE_Y = 600;
 
-String g_filename = "HandMotion0.csv";
-//String g_filename = "MyMotion.csv";
+//String g_filename = "HandMotion0.csv";
+String g_filename = "MyMotion.csv";
 String[] g_lines;
 int g_ln = 0;
 int g_h_flag = 0;
@@ -75,9 +75,9 @@ void drawHand() {
 	
 	pushMatrix();
 	translate(VIEW_SIZE_X / 2 + 170, VIEW_SIZE_Y / 2 + 250, 0);
-	rotateZ( - g_Euler[2]);
-	rotateY( - g_Euler[0]);
-	rotateX( - g_Euler[1]);
+	rotateZ(- g_Euler[2]);
+	rotateY(- g_Euler[0]);
+	rotateX(- g_Euler[1]);
 	
 	buildHandShape();
 	
@@ -122,14 +122,16 @@ void drawOya(float hand_size, float d) {
 	fill(#ff0000);
 	/* hira */
 	rotateY(PI * 0.12);
-	rotateX(- PI * 0.1);
+	rotateX( - PI * 0.1);
 	translate(hand_size * 0.08, 0, hand_size * 0.14);
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
+	rotateY( - g_yubi_oya.m_b * PI * 0.2);
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
+	rotateY( - g_yubi_oya.m_b * PI * 0.5);
 	drawCylinder(d_2, h_2);
 	
 	fill(#888888);
@@ -154,15 +156,18 @@ void drawHito(float hand_size, float d) {
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
-	rotateY( - PI * 0.04);
+	rotateY(- PI * 0.04);
+	rotateX( - g_yubi_hito.m_b * PI * 0.25);
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(PI * 0.005);
+	rotateX( - g_yubi_hito.m_b * PI * 0.5);
 	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
 	rotateY(PI * 0.005);
+	rotateX( - g_yubi_hito.m_b * PI * 0.5);
 	drawCylinder(d_3, h_3);
 	popMatrix();
 }
@@ -186,15 +191,18 @@ void drawNaka(float hand_size, float d) {
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
-	rotateX( - PI * 0.015 * 2);
-	rotateY(- PI * 0.02);
+	rotateY( - PI * 0.02);
+	rotateX(- PI * 0.015);
+	rotateX(- g_yubi_naka.m_b * PI * 0.25);
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	rotateX(PI * 0.015);
+	rotateX(-PI * 0.015);
+	rotateX(- g_yubi_naka.m_b * PI * 0.5);
 	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
+	rotateX(- g_yubi_naka.m_b * PI * 0.5);
 	drawCylinder(d_3, h_3);
 	popMatrix();
 }
@@ -212,8 +220,8 @@ void drawKusuri(float hand_size, float d) {
 	
 	pushMatrix();
 	/* hira */
-	translate(- hand_size * 0.08, 0, hand_size * 0.11);
-	rotateY(- PI * 0.01);
+	translate( - hand_size * 0.08, 0, hand_size * 0.11);
+	rotateY( - PI * 0.01);
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
@@ -241,8 +249,8 @@ void drawKo(float hand_size, float d) {
 	
 	pushMatrix();
 	/* hira */
-	translate(- hand_size * 0.08 * 2, 0, hand_size * 0.12);
-	rotateY(- PI * 0.035);
+	translate( - hand_size * 0.08 * 2, 0, hand_size * 0.12);
+	rotateY( - PI * 0.035);
 	drawCylinder(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
@@ -288,7 +296,7 @@ void check_axis()
 	translate(50, 0, - 50);
 	fill(#ff0000);
 	sphere(10);/* x */
-	translate( - 50, 50, 0);
+	translate(- 50, 50, 0);
 	fill(#00ff00);
 	sphere(10);/* y */
 	popMatrix();
@@ -368,7 +376,7 @@ void draw() {
 	
 	textFont(g_font, 20);
 	textAlign(LEFT, TOP);
-	text("Acc. : [" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
+	text("Acc.:[" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
 		"Time : " + nfs(g_dt, 0, 2) + "[ms]", 20, 20);
 	text("Euler angles : \n" + 
 		"Yaw(psi)  : "   + nfs(degrees(g_Euler[0]), 0, 2) + "\n" + 
