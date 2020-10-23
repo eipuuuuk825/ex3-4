@@ -70,20 +70,51 @@ Yubi g_yubi_oya = new Yubi();
 Yubi g_yubi_hito = new Yubi();
 Yubi g_yubi_naka = new Yubi();
 
+void drawHand() {  
+	noStroke();
+	ambientLight(189, 189, 189);
+	lightSpecular(255, 255, 255);
+	directionalLight(102, 102, 102, 1, 1, 1);
+	specular(255, 255, 255);
+	shininess(5.0);
+	
+	pushMatrix();
+	translate(VIEW_SIZE_X / 2 + 170, VIEW_SIZE_Y / 2 + 50, 0);
+	rotateZ( - g_Euler[2]);
+	rotateY( - g_Euler[0]);
+	rotateX( - g_Euler[1]);
+	
+	buildHandShape();
+	
+	popMatrix();
+}
 
 void buildHandShape() {
-	/* hito */
+	final float hand_size = 150;
+	final float first_forward = 50;
+	
 	pushMatrix();
-	translate( - 20, 0, - 50 - 100 * g_yubi_hito.m_b);
-	sphere(g_R_YUBI);
+	// /* base */
+	// sphere(20);
+	// /* naka */
+	// pushMatrix();
+	// translate(0,  0, -first_forward);
+	// drawCylinder(10, 0, 10, hand_size);
+	// popMatrix();
 	
-	/* zahyoushutoku */
-	g_yubi_hito.get_pos(3);
+	// translate(-hand_size/2, 0, 0);
+	// drawCylinder(10, 0, 10, hand_size);
+	// translate(hand_size, 0, 0);
+	// drawCylinder(10, 0, 10, hand_size);
 	
-	popMatrix(); 
+	popMatrix();
 	
-	/* hira */
-	box(40, 1, 60);
+	/* hito */
+	// pushMatrix();
+	// translate( - 20, 0, - 50 - 100 * g_yubi_hito.m_b);
+	// sphere(g_R_YUBI);
+	// g_yubi_hito.get_pos(3);
+	// popMatrix(); 
 }
 
 
@@ -232,25 +263,6 @@ void keyPressed() {
 	}
 }
 
-void drawHand() {  
-	noStroke();
-	ambientLight(189, 189, 189);
-	lightSpecular(255, 255, 255);
-	directionalLight(102, 102, 102, 1, 1, 1);
-	specular(255, 255, 255);
-	shininess(5.0);
-	
-	pushMatrix();
-	translate(VIEW_SIZE_X / 2, VIEW_SIZE_Y / 2 + 50, 0);
-	rotateZ( - g_Euler[2]);
-	rotateY( - g_Euler[0]);
-	rotateX( - g_Euler[1]);
-	
-	buildHandShape();
-	
-	popMatrix();
-}
-
 void quaternionToEuler(float[] q, float[] euler) {
 	euler[0] = atan2(2 * q[1] * q[2] - 2 * q[0] * q[3], 2 * q[0] * q[0] - 2 * q[1] * q[1] - 1);
 	euler[1] = - asin(2 * q[1] * q[3] + 2 * q[0] * q[2]);
@@ -293,6 +305,8 @@ float[] quatTranslate(float[] x) {
 
 // http://vormplus.be/blog/article/drawing-a-cylinder-with-processing
 void drawCylinder(int sides, float r1, float r2, float h) {
+	pushMatrix();
+	translate(0, 0, - h / 2);
 	float angle = 360 / sides;
 	float halfHeight = h / 2;
 	// top
@@ -322,6 +336,7 @@ void drawCylinder(int sides, float r1, float r2, float h) {
 		vertex(x2, y2, halfHeight);
 	}
 	endShape(CLOSE);
+	popMatrix();
 } 
 
 void settings() {
