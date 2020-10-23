@@ -37,6 +37,7 @@ class Point
 class Yubi
 {
 	Point[] m_p = new Point[4];
+	float m_b;
 	
 	Yubi()	 {
 		for (int i = 0;i < m_p.length;i++)
@@ -51,25 +52,55 @@ class Yubi
 	
 	float get_dist(int index, Point p) {
 		return dist(p.m_x, p.m_y, p.m_z, 
-			      m_p[index].m_x, m_p[index].m_y, m_p[index].m_z);
+			m_p[index].m_x, m_p[index].m_y, m_p[index].m_z);
 	}
-	
 }
 
-final int YUBI_OYA = 3;
-final int YUBI_HITO = 2;
-final int YUBI_NAKA = 1;
+/* b norm */
+float[] g_b_max = {0, 0, 0, 0, 0};
+float[] g_b_min = {20, 20, 20, 20, 20};
 
-float[] b_max = {0, 0, 0, 0, 0};
-float[] b_min = {20, 20, 20, 20, 20};
-float[] b_norm = {0, 0, 0, 0, 0};
-
+/* param */
 final float g_R_YUBI = 10;
 final float g_R_OBJ = 30;
-
 final Point g_OBJ_POS = new Point(VIEW_SIZE_X / 2 - 50 , VIEW_SIZE_Y / 2 + 50, - 150);
-Yubi g_yubi = new Yubi();
 
+/* yubi */
+Yubi g_yubi_oya = new Yubi();
+Yubi g_yubi_hito = new Yubi();
+Yubi g_yubi_naka = new Yubi();
+
+
+void buildHandShape() {
+	/* hito */
+	pushMatrix();
+	translate(- 20, 0, - 50 - 100 * g_yubi_hito.m_b);
+	sphere(g_R_YUBI);
+	
+	/* zahyoushutoku */
+	g_yubi_hito.get_pos(3);
+	
+	popMatrix(); 
+	
+	/* hira */
+	box(40, 1, 60);
+}
+
+
+void drawObstacle() {
+	if (g_yubi_hito.get_dist(3, g_OBJ_POS) < g_R_YUBI + g_R_OBJ)
+		fill(#ff0000);
+	else
+		fill(#888888);
+	
+	pushMatrix();
+	translate(g_OBJ_POS.m_x, g_OBJ_POS.m_y, g_OBJ_POS.m_z);
+	sphere(g_R_OBJ);
+	popMatrix();
+}
+
+/* --------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------- */
 
 void getVals() {  
 	String[] co = split(lines[ln], ',');
@@ -84,67 +115,29 @@ void getVals() {
 	delay(80);
 	
 	/* b seikika */
-	for (int i = 0;i < 5;i++)
-	 {
-		if (b[i] > b_max[i])b_max[i] = b[i];
-		if (b[i] < b_min[i])b_min[i] = b[i];
-		b_norm[i] = (b[i] - b_min[i]) / (b_max[i] - b_min[i]);
+	final int YUBI_OYA = 3;
+	final int YUBI_HITO = 2;
+	final int YUBI_NAKA = 1;
+	
+	for (int i = 0;i < 5;i++) {
+		if (b[i] > g_b_max[i])g_b_max[i] = b[i];
+		if (b[i] < g_b_min[i])g_b_min[i] = b[i];
+		float norm = (b[i] - g_b_min[i]) / (g_b_max[i] - g_b_min[i]); 
+		switch(i)
+		{
+			case YUBI_OYA:
+			g_yubi_oya.m_b = norm;
+			break;
+			case YUBI_HITO:
+			g_yubi_hito.m_b = norm;
+			break;
+			case YUBI_NAKA:
+			g_yubi_naka.m_b = norm;
+			break;
+		}
 	}
 	//println(b_norm[YUBI_OYA]+", "+b_norm[YUBI_HITO]+", "+b_norm[YUBI_NAKA]);
 }
-
-
-
-void buildHandShape() {
-	/* hito */
-	pushMatrix();
-	translate(- 20, 0, - 50 - 100 * b_norm[YUBI_HITO]);
-	sphere(g_R_YUBI);
-	
-	/* zahyoushutoku */
-	g_yubi.get_pos(3);
-	
-	popMatrix(); 
-	
-	/* hira */
-	box(40, 1, 60);
-}
-
-
-void drawHand() {  
-	noStroke();
-	ambientLight(189, 189, 189);
-	lightSpecular(255, 255, 255);
-	directionalLight(102, 102, 102, 1, 1, 1);
-	specular(255, 255, 255);
-	shininess(5.0);
-	
-	pushMatrix();
-	translate(VIEW_SIZE_X / 2, VIEW_SIZE_Y / 2 + 50, 0);
-	rotateZ(- Euler[2]);
-	rotateY(- Euler[0]);
-	rotateX(- Euler[1]);
-	
-	buildHandShape();
-	
-	popMatrix();
-}
-
-
-void drawSphere() {
-	if (g_yubi.get_dist(3, g_OBJ_POS) < g_R_YUBI + g_R_OBJ)
-		fill(#ff0000);
-	else
-		fill(#888888);
-	
-	pushMatrix();
-	translate(g_OBJ_POS.m_x, g_OBJ_POS.m_y, g_OBJ_POS.m_z);
-	sphere(g_R_OBJ);
-	popMatrix();
-}
-
-/* --------------------------------------------------------------------------- */
-/* --------------------------------------------------------------------------- */
 
 void draw() {
 	background(#000000);
@@ -189,7 +182,7 @@ void draw() {
 	text("Flexions : \n" + nfs(b[0], 0, 2) + "\n" + nfs(b[1], 0, 2) + "\n" + nfs(b[2], 0, 2) + "\n" + nfs(b[3], 0, 2) + "\n" + nfs(b[4], 0, 2), 600, 20);
 	
 	drawHand();
-	drawSphere();
+	drawObstacle();
 	
 	int igx = 20, igy = 200, ghh = 50, scl = 2;
 	for (int i = 0; i < Data_num; i++) {
@@ -237,6 +230,25 @@ void keyPressed() {
 		println("pressed n");
 		hq = null;
 	}
+}
+
+void drawHand() {  
+	noStroke();
+	ambientLight(189, 189, 189);
+	lightSpecular(255, 255, 255);
+	directionalLight(102, 102, 102, 1, 1, 1);
+	specular(255, 255, 255);
+	shininess(5.0);
+	
+	pushMatrix();
+	translate(VIEW_SIZE_X / 2, VIEW_SIZE_Y / 2 + 50, 0);
+	rotateZ(- Euler[2]);
+	rotateY(- Euler[0]);
+	rotateX(- Euler[1]);
+	
+	buildHandShape();
+	
+	popMatrix();
 }
 
 void quaternionToEuler(float[] q, float[] euler) {
