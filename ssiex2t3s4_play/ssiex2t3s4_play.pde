@@ -1,9 +1,9 @@
-int Data_num = 3;
-int Data_lng = 256;
-float[][] Data = new float[Data_num][Data_lng];
+int g_Data_num = 3;
+int g_Data_lng = 256;
+float[][] g_Data = new float[g_Data_num][g_Data_lng];
 
-float t = 0, dt = 0;
-float[] a = {0, 0, 0} , ac = {0, 0, 0} , aw = {0, 0, 0} , af = {0, 0, 0} , av = {0, 0, 0};
+float g_t = 0, g_dt = 0;
+float[] g_a = {0, 0, 0} , g_ac = {0, 0, 0} , g_aw = {0, 0, 0} , g_af = {0, 0, 0} , g_av = {0, 0, 0};
 float[] q = new float[4];
 float[] hq = {0, 0, 0, 1};
 float[] Euler = new float[3]; // psi, theta, phi
@@ -105,9 +105,9 @@ void drawObstacle() {
 void getVals() {  
 	String[] co = split(lines[ln], ',');
 	if (ln + 1 < lines.length - 1) ln++;
-	dt = float(co[0]) - t;
-	t = float(co[0]);
-	for (int i = 0; i < 3; i++) a[i] = float(co[i + 1]);
+	g_dt = float(co[0]) - g_t;
+	g_t = float(co[0]);
+	for (int i = 0; i < 3; i++) g_a[i] = float(co[i + 1]);
 	for (int i = 0; i < 4; i++) q[i] = float(co[i + 4]);
 	for (int i = 0; i < 5; i++) b[i] = float(co[i + 8]);
 	for (int i = 0; i < 5; i++) if (b[i] > 20.0) b[i] = 20.0;
@@ -149,10 +149,10 @@ void draw() {
 		hq = quatConjugate(q);
 		
 		for (int i = 0; i < 3; i++) {
-			ac[i] = 0;
-			aw[i] = 0;
-			af[i] = 0;
-			av[i] = 0;
+			g_ac[i] = 0;
+			g_aw[i] = 0;
+			g_af[i] = 0;
+			g_av[i] = 0;
 		}
 	}
 	
@@ -164,17 +164,17 @@ void draw() {
 		text("Point FreeIMU's X axis to your monitor then press \"h\"", 20, VIEW_SIZE_Y - 30);
 	}
 	
-	for (int i = 0; i < 3; i++) ac[i] = a[i] * (9.8 / 272.5);
-	aw = quatTranslate(ac); // 0;-z, 1:-x, 2:-y
-	for (int i = 0; i < 3; i++) af[i] = - aw[i]; // (2*af[i] + (-1)*aw[i] - 0)/3;
-	av[0] = - af[0];
-	av[1] = - af[1] + 9.61;
-	av[2] = - af[2];
+	for (int i = 0; i < 3; i++) g_ac[i] = g_a[i] * (9.8 / 272.5);
+	g_aw = quatTranslate(g_ac); // 0;-z, 1:-x, 2:-y
+	for (int i = 0; i < 3; i++) g_af[i] = - g_aw[i]; // (2*g_af[i] + (-1)*g_aw[i] - 0)/3;
+	g_av[0] = - g_af[0];
+	g_av[1] = - g_af[1] + 9.61;
+	g_av[2] = - g_af[2];
 	
 	textFont(font, 20);
 	textAlign(LEFT, TOP);
-	text("Acc.:[" + nfs(av[0], 0, 2) + ", " + nfs(av[1], 0, 2) + ", " + nfs(av[2], 0, 2) + "]\n" +
-		"Time : " + nfs(dt, 0, 2) + "[ms]", 20, 20);
+	text("Acc.:[" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
+		"Time : " + nfs(g_dt, 0, 2) + "[ms]", 20, 20);
 	text("Euler angles : \n" + 
 		"Yaw(psi)  : "   + nfs(degrees(Euler[0]), 0, 2) + "\n" + 
 		"Pitch(theta) : " + nfs(degrees(Euler[1]), 0, 2) + "\n" + 
@@ -185,12 +185,12 @@ void draw() {
 	drawObstacle();
 	
 	int igx = 20, igy = 200, ghh = 50, scl = 2;
-	for (int i = 0; i < Data_num; i++) {
+	for (int i = 0; i < g_Data_num; i++) {
 		stroke(0, 255, 0);
-		for (int j = 0; j < Data_lng - 1; j++) {
-			Data[i][j] = Data[i][j + 1];
-			if (j == Data_lng - 2) Data[i][j + 1] = av[i];
-			line(j + igx, - Data[i][j] * scl + igy + ghh * (2 * i + 1), j + 1 + igx, - Data[i][j + 1] * scl + igy + ghh * (2 * i + 1));
+		for (int j = 0; j < g_Data_lng - 1; j++) {
+			g_Data[i][j] = g_Data[i][j + 1];
+			if (j == g_Data_lng - 2) g_Data[i][j + 1] = g_av[i];
+			line(j + igx, - g_Data[i][j] * scl + igy + ghh * (2 * i + 1), j + 1 + igx, - g_Data[i][j + 1] * scl + igy + ghh * (2 * i + 1));
 		}
 		stroke(255, 255, 255);
 		line(igx, igy + ghh * (2 * i + 1) - 45, igx, igy + ghh * (2 * i + 1) + 45);
@@ -221,10 +221,10 @@ void keyPressed() {
 		hq = quatConjugate(q);
 		
 		for (int i = 0; i < 3; i++) {
-			ac[i] = 0;
-			aw[i] = 0;
-			af[i] = 0;
-			av[i] = 0;
+			g_ac[i] = 0;
+			g_aw[i] = 0;
+			g_af[i] = 0;
+			g_av[i] = 0;
 		}
 	} else if (key == 'n') {
 		println("pressed n");
@@ -331,9 +331,9 @@ void settings() {
 void setup() {
 	font = createFont("Courier", 32);
 	
-	for (int i = 0; i < Data_num; i++) 
-		for (int j = 0; j < Data_lng; j++) 
-			Data[i][j] = 0;
+	for (int i = 0; i < g_Data_num; i++) 
+		for (int j = 0; j < g_Data_lng; j++) 
+			g_Data[i][j] = 0;
 	
 	delay(100);
 	
