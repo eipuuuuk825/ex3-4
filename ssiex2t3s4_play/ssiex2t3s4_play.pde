@@ -134,7 +134,7 @@ void drawOya(float hand_size, float d) {
 	translate(0, 0, h_hira);
 	drawCylinder(d_1, h_1);
 	/* 2 */
-	translate(0, 0, h_hira);
+	translate(0, 0, h_1);
 	drawCylinder(d_2, h_2);
 	
 	fill(#888888);
@@ -226,7 +226,7 @@ void drawKusuri(float hand_size, float d) {
 	drawCylinder(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	drawCylinder(d_2, h_3);
+	drawCylinder(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
 	drawCylinder(d_3, h_3);
