@@ -1,0 +1,329 @@
+int Data_num = 3;
+int Data_lng = 256;
+float[][] Data = new float[Data_num][Data_lng];
+
+float t = 0, dt = 0;
+float[] a = {0, 0, 0} , ac = {0, 0, 0} , aw = {0, 0, 0} , af = {0, 0, 0} , av = {0, 0, 0};
+float[] q = new float[4];
+float[] hq = {0, 0, 0, 1};
+float[] Euler = new float[3]; // psi, theta, phi
+float[] b = {0, 0, 0, 0, 0};
+PFont font;
+final int VIEW_SIZE_X = 800, VIEW_SIZE_Y = 600;
+
+//String filename = "HandMotion0.csv";
+String filename = "MyMotion.csv";
+String[] lines;
+int ln = 0;
+int h_flag = 0;
+
+/* --------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------- */
+
+class Point
+{
+	float m_x, m_y, m_z;
+	
+	Point() {
+		m_x = m_y = m_z = 0;
+	}
+	Point(float x, float y, float z) {
+		m_x = x;
+		m_y = y;
+		m_z = z;
+	}
+}
+
+class Yubi
+{
+	Point[] m_p = new Point[4];
+	
+	Yubi()	 {
+		for (int i = 0;i < m_p.length;i++)
+			m_p[i] = new Point();
+	}
+	
+	void get_pos(int index)	 {
+		m_p[index].m_x = modelX(0, 0, 0);
+		m_p[index].m_y = modelY(0, 0, 0);
+		m_p[index].m_z = modelZ(0, 0, 0);
+	}
+	
+	float get_dist(int index, Point p) {
+		return dist(p.m_x, p.m_y, p.m_z, 
+			      m_p[index].m_x, m_p[index].m_y, m_p[index].m_z);
+	}
+	
+}
+
+final int YUBI_OYA = 3;
+final int YUBI_HITO = 2;
+final int YUBI_NAKA = 1;
+
+float[] b_max = {0, 0, 0, 0, 0};
+float[] b_min = {20, 20, 20, 20, 20};
+float[] b_norm = {0, 0, 0, 0, 0};
+
+final float g_R_YUBI = 10;
+final float g_R_OBJ = 30;
+
+final Point g_OBJ_POS = new Point(VIEW_SIZE_X / 2 - 50 , VIEW_SIZE_Y / 2 + 50, - 150);
+Yubi g_yubi = new Yubi();
+
+
+void getVals() {  
+	String[] co = split(lines[ln], ',');
+	if (ln + 1 < lines.length - 1) ln++;
+	dt = float(co[0]) - t;
+	t = float(co[0]);
+	for (int i = 0; i < 3; i++) a[i] = float(co[i + 1]);
+	for (int i = 0; i < 4; i++) q[i] = float(co[i + 4]);
+	for (int i = 0; i < 5; i++) b[i] = float(co[i + 8]);
+	for (int i = 0; i < 5; i++) if (b[i] > 20.0) b[i] = 20.0;
+	h_flag  = int(co[13]);
+	delay(80);
+	
+	/* b seikika */
+	for (int i = 0;i < 5;i++)
+	 {
+		if (b[i] > b_max[i])b_max[i] = b[i];
+		if (b[i] < b_min[i])b_min[i] = b[i];
+		b_norm[i] = (b[i] - b_min[i]) / (b_max[i] - b_min[i]);
+	}
+	//println(b_norm[YUBI_OYA]+", "+b_norm[YUBI_HITO]+", "+b_norm[YUBI_NAKA]);
+}
+
+
+
+void buildHandShape() {
+	/* hito */
+	pushMatrix();
+	translate(- 20, 0, - 50 - 100 * b_norm[YUBI_HITO]);
+	sphere(g_R_YUBI);
+	
+	/* zahyoushutoku */
+	g_yubi.get_pos(3);
+	
+	popMatrix(); 
+	
+	/* hira */
+	box(40, 1, 60);
+}
+
+
+void drawHand() {  
+	noStroke();
+	ambientLight(189, 189, 189);
+	lightSpecular(255, 255, 255);
+	directionalLight(102, 102, 102, 1, 1, 1);
+	specular(255, 255, 255);
+	shininess(5.0);
+	
+	pushMatrix();
+	translate(VIEW_SIZE_X / 2, VIEW_SIZE_Y / 2 + 50, 0);
+	rotateZ(- Euler[2]);
+	rotateY(- Euler[0]);
+	rotateX(- Euler[1]);
+	
+	buildHandShape();
+	
+	popMatrix();
+}
+
+
+void drawSphere() {
+	if (g_yubi.get_dist(3, g_OBJ_POS) < g_R_YUBI + g_R_OBJ)
+		fill(#ff0000);
+	else
+		fill(#888888);
+	
+	pushMatrix();
+	translate(g_OBJ_POS.m_x, g_OBJ_POS.m_y, g_OBJ_POS.m_z);
+	sphere(g_R_OBJ);
+	popMatrix();
+}
+
+/* --------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------- */
+
+void draw() {
+	background(#000000);
+	fill(#ffffff);
+	
+	getVals();
+	
+	if (h_flag == 1) {
+		hq = quatConjugate(q);
+		
+		for (int i = 0; i < 3; i++) {
+			ac[i] = 0;
+			aw[i] = 0;
+			af[i] = 0;
+			av[i] = 0;
+		}
+	}
+	
+	if (hq != null) { // use home quaternion
+		quaternionToEuler(quatProd(hq, q), Euler);
+		text("Disable home position by pressing \"n\"", 20, VIEW_SIZE_Y - 30);
+	} else {
+		quaternionToEuler(q, Euler);
+		text("Point FreeIMU's X axis to your monitor then press \"h\"", 20, VIEW_SIZE_Y - 30);
+	}
+	
+	for (int i = 0; i < 3; i++) ac[i] = a[i] * (9.8 / 272.5);
+	aw = quatTranslate(ac); // 0;-z, 1:-x, 2:-y
+	for (int i = 0; i < 3; i++) af[i] = - aw[i]; // (2*af[i] + (-1)*aw[i] - 0)/3;
+	av[0] = - af[0];
+	av[1] = - af[1] + 9.61;
+	av[2] = - af[2];
+	
+	textFont(font, 20);
+	textAlign(LEFT, TOP);
+	text("Acc.:[" + nfs(av[0], 0, 2) + ", " + nfs(av[1], 0, 2) + ", " + nfs(av[2], 0, 2) + "]\n" +
+		"Time : " + nfs(dt, 0, 2) + "[ms]", 20, 20);
+	text("Euler angles : \n" + 
+		"Yaw(psi)  : "   + nfs(degrees(Euler[0]), 0, 2) + "\n" + 
+		"Pitch(theta) : " + nfs(degrees(Euler[1]), 0, 2) + "\n" + 
+		"Roll(phi)  : "  + nfs(degrees(Euler[2]), 0, 2), 350, 20);
+	text("Flexions : \n" + nfs(b[0], 0, 2) + "\n" + nfs(b[1], 0, 2) + "\n" + nfs(b[2], 0, 2) + "\n" + nfs(b[3], 0, 2) + "\n" + nfs(b[4], 0, 2), 600, 20);
+	
+	drawHand();
+	drawSphere();
+	
+	int igx = 20, igy = 200, ghh = 50, scl = 2;
+	for (int i = 0; i < Data_num; i++) {
+		stroke(0, 255, 0);
+		for (int j = 0; j < Data_lng - 1; j++) {
+			Data[i][j] = Data[i][j + 1];
+			if (j == Data_lng - 2) Data[i][j + 1] = av[i];
+			line(j + igx, - Data[i][j] * scl + igy + ghh * (2 * i + 1), j + 1 + igx, - Data[i][j + 1] * scl + igy + ghh * (2 * i + 1));
+		}
+		stroke(255, 255, 255);
+		line(igx, igy + ghh * (2 * i + 1) - 45, igx, igy + ghh * (2 * i + 1) + 45);
+		line(igx, igy + ghh * (2 * i + 1), igx + 5, igy + ghh * (2 * i + 1));
+	}
+	stroke(0, 0, 0);
+}
+
+float decodeFloat(String inString) {
+	byte[] inData = new byte[4];
+	
+	if (inString.length() == 8) {
+		inData[0] = (byte) unhex(inString.substring(0, 2));
+		inData[1] = (byte) unhex(inString.substring(2, 4));
+		inData[2] = (byte) unhex(inString.substring(4, 6));
+		inData[3] = (byte) unhex(inString.substring(6, 8));
+	}
+	
+	int intbits = (inData[3] << 24) | ((inData[2] & 0xff) << 16) | ((inData[1] & 0xff) << 8) | (inData[0] & 0xff);
+	return Float.intBitsToFloat(intbits);
+}
+
+void keyPressed() {
+	if (key == 'h') {
+		println("pressed h");
+		
+		// set hq the home quaternion as the quatnion conjugate coming from the sensor fusion
+		hq = quatConjugate(q);
+		
+		for (int i = 0; i < 3; i++) {
+			ac[i] = 0;
+			aw[i] = 0;
+			af[i] = 0;
+			av[i] = 0;
+		}
+	} else if (key == 'n') {
+		println("pressed n");
+		hq = null;
+	}
+}
+
+void quaternionToEuler(float[] q, float[] euler) {
+	euler[0] = atan2(2 * q[1] * q[2] - 2 * q[0] * q[3], 2 * q[0] * q[0] - 2 * q[1] * q[1] - 1);
+	euler[1] = - asin(2 * q[1] * q[3] + 2 * q[0] * q[2]);
+	euler[2] = atan2(2 * q[2] * q[3] - 2 * q[0] * q[1], 2 * q[0] * q[0] + 2 * q[3] * q[3] - 1);
+}
+
+float[] quatProd(float[] a, float[] b) {
+	float[] q = new float[4];
+	
+	q[0] = a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
+	q[1] = a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2];
+	q[2] = a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1];
+	q[3] = a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0];
+	
+	return q;
+}
+
+// return the quaternion conjugate of quat
+float[] quatConjugate(float[] quat) {
+	float[] conj = new float[4];
+	
+	conj[0] = quat[0];
+	conj[1] = - quat[1];
+	conj[2] = - quat[2];
+	conj[3] = - quat[3];
+	
+	return conj;
+}
+
+// Translate a point vector from senseor local co. sys. to real world co. sys. by using quaternion
+float[] quatTranslate(float[] x) {
+	float[] y = new float[3];
+	
+	y[2] = - ((sq(q[0]) + sq(q[1]) - sq(q[2]) - sq(q[3])) * x[0] + 2 * (q[1] * q[2] - q[0] * q[3]) * x[1] + 2 * (q[1] * q[3] + q[0] * q[2]) * x[2]);
+	y[0] = - (2 * (q[1] * q[2] + q[0] * q[3]) * x[0] + (sq(q[0]) - sq(q[1]) + sq(q[2]) - sq(q[3])) * x[1] + 2 * (q[2] * q[3] - q[0] * q[1]) * x[2]);
+	y[1] = - (2 * (q[1] * q[3] - q[0] * q[2]) * x[0] + 2 * (q[2] * q[3] + q[0] * q[1]) * x[1] + (sq(q[0]) - sq(q[1]) - sq(q[2]) + sq(q[3])) * x[2]);
+	
+	return y;
+}
+
+// http://vormplus.be/blog/article/drawing-a-cylinder-with-processing
+void drawCylinder(int sides, float r1, float r2, float h) {
+	float angle = 360 / sides;
+	float halfHeight = h / 2;
+	// top
+	beginShape();
+	for (int i = 0; i < sides; i++) {
+		float x = cos(radians(i * angle)) * r1;
+		float y = sin(radians(i * angle)) * r1;
+		vertex(x, y, - halfHeight);
+	}
+	endShape(CLOSE);
+	// bottom
+	beginShape();
+	for (int i = 0; i < sides; i++) {
+		float x = cos(radians(i * angle)) * r2;
+		float y = sin(radians(i * angle)) * r2;
+		vertex(x, y, halfHeight);
+	}
+	endShape(CLOSE);
+	// draw body
+	beginShape(TRIANGLE_STRIP);
+	for (int i = 0; i < sides + 1; i++) {
+		float x1 = cos(radians(i * angle)) * r1;
+		float y1 = sin(radians(i * angle)) * r1;
+		float x2 = cos(radians(i * angle)) * r2;
+		float y2 = sin(radians(i * angle)) * r2;
+		vertex(x1, y1, - halfHeight);
+		vertex(x2, y2, halfHeight);
+	}
+	endShape(CLOSE);
+} 
+
+void settings() {
+	size(VIEW_SIZE_X, VIEW_SIZE_Y, P3D);
+}
+
+void setup() {
+	font = createFont("Courier", 32);
+	
+	for (int i = 0; i < Data_num; i++) 
+		for (int j = 0; j < Data_lng; j++) 
+			Data[i][j] = 0;
+	
+	delay(100);
+	
+	lines = loadStrings(filename);
+}
