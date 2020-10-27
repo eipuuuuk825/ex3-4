@@ -85,6 +85,7 @@ class Obstacle
 		translate(m_p.m_x, m_p.m_y, m_p.m_z);
 		sphere(m_r);
 		popMatrix();
+		fill(g_DEFAULT_COLOR);
 	}
 }
 
@@ -152,6 +153,28 @@ class MAF/* 移動平均フィルタ */
 	}
 }
 
+class LPF/* ローパスフィルタ */
+{
+	float m_a;	/* 重み */
+	float m_pre;/* 一つ前の値 */
+	
+	LPF(float a) {
+		if (a <= 0 || 1 <= a) {
+			println("a には 0 ~ 1 の値を指定してください．");
+			exit();
+		}
+		m_a = a;
+		m_pre = 0;
+	}
+	
+	float calc(float d)
+	 {
+		float ret = m_pre * m_a + d * (1 - m_a);
+		m_pre = ret;
+		return ret;
+	}
+}
+
 /* b の正規化 */
 float[] g_b_max = {0, 0, 0, 0, 0};
 float[] g_b_min = {20, 20, 20, 20, 20};
@@ -178,8 +201,11 @@ Obstacle g_obs1 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 150, VIEW_SIZE_Y / 2 
 Obstacle g_obs2 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 50, VIEW_SIZE_Y / 2 + 175, - 150), 80);
 Obstacle g_obs3 = new Obstacle(new Point(VIEW_SIZE_X / 2 + 125, VIEW_SIZE_Y / 2 + 300, - 300), 80);
 
-PrintWriter g_output_file;
-MAF[]g_filtered_a = {new MAF(3), new MAF(3), new MAF(3)};
+/* 平滑化 */
+PrintWriter g_output_file;	/* 平滑化結果出力用 */
+// MAF[]g_filtered_a = {new MAF(7), new MAF(7), new MAF(7)};
+LPF[]g_filtered_a = {new LPF(0.75), new LPF(0.75), new LPF(0.75)};
+
 
 /*-----------------------------------------------
 *
@@ -207,9 +233,9 @@ void drawHand() {
 	
 	pushMatrix();
 	translate(VIEW_SIZE_X / 2 + 170, VIEW_SIZE_Y / 2 + 100, 0);
-	rotateZ( - g_Euler[2]);
-	rotateY( - g_Euler[0]);
-	rotateX( - g_Euler[1]);
+	rotateZ(- g_Euler[2]);
+	rotateY(- g_Euler[0]);
+	rotateX(- g_Euler[1]);
 	rotateY(PI);
 	
 	// rotateX(PI / 2); 		/* 見やすくするために回転 */
@@ -244,17 +270,17 @@ void drawOya(float hand_size, float d) {
 	pushMatrix();
 	/* hira */
 	rotateY(PI * 0.12);
-	rotateX( - PI * 0.1);
+	rotateX(- PI * 0.1);
 	translate(hand_size * 0.08, 0, hand_size * 0.14);
 	drawBone(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
-	rotateY(- PI * 0.1);
-	rotateY( - g_yubi[g_YUBI_OYA].m_b * PI * 0.2);/* 屈伸 */
+	rotateY( - PI * 0.1);
+	rotateY(- g_yubi[g_YUBI_OYA].m_b * PI * 0.2);/* 屈伸 */
 	drawBone(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	rotateY( - g_yubi[g_YUBI_OYA].m_b * PI * 0.5);/* 屈伸 */
+	rotateY(- g_yubi[g_YUBI_OYA].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_2, h_2);
 	/* 座標取得 */
 	translate(0, 0, h_2);
@@ -285,20 +311,20 @@ void drawHito(float hand_size, float d) {
 	drawBone(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
-	rotateY(- PI * 0.04);
-	rotateX( - g_INIT_BEND1);
-	rotateX( - g_yubi[g_YUBI_HITO].m_b * PI * 0.25);/* 屈伸 */
+	rotateY( - PI * 0.04);
+	rotateX(- g_INIT_BEND1);
+	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.25);/* 屈伸 */
 	drawBone(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(PI * 0.005);
-	rotateX( - g_INIT_BEND2);
-	rotateX( - g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
+	rotateX(- g_INIT_BEND2);
+	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
 	rotateY(PI * 0.005);
-	rotateX( - g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
+	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_3, h_3);
 	/* 座標取得 */
 	translate(0, 0, h_3);
@@ -329,17 +355,17 @@ void drawNaka(float hand_size, float d) {
 	drawBone(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
-	rotateY( - PI * 0.02);
-	rotateX(- g_yubi[g_YUBI_NAKA].m_b * PI * 0.25);/* 屈伸 */
+	rotateY(- PI * 0.02);
+	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.25);/* 屈伸 */
 	drawBone(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	rotateX( - g_INIT_BEND2);
-	rotateX(- g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
+	rotateX(- g_INIT_BEND2);
+	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
-	rotateX(- g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
+	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_3, h_3);
 	/* 座標取得 */
 	translate(0, 0, h_3);
@@ -365,17 +391,17 @@ void drawKusuri(float hand_size, float d) {
 	
 	pushMatrix();
 	/* hira */
-	translate( - hand_size * 0.08, 0, hand_size * 0.11);
-	rotateY( - PI * 0.01);
+	translate(- hand_size * 0.08, 0, hand_size * 0.11);
+	rotateY(- PI * 0.01);
 	drawBone(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
 	rotateY(PI * 0.01);
-	rotateX( - g_INIT_BEND1);
+	rotateX(- g_INIT_BEND1);
 	drawBone(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
-	rotateX( - g_INIT_BEND2);
+	rotateX(- g_INIT_BEND2);
 	drawBone(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
@@ -401,18 +427,18 @@ void drawKo(float hand_size, float d) {
 	
 	pushMatrix();
 	/* hira */
-	translate( - hand_size * 0.08 * 2, 0, hand_size * 0.12);
-	rotateY( - PI * 0.035);
+	translate(- hand_size * 0.08 * 2, 0, hand_size * 0.12);
+	rotateY(- PI * 0.035);
 	drawBone(d_hira, h_hira);
 	/* 1 */
 	translate(0, 0, h_hira);
 	rotateY(PI * 0.037);
-	rotateX( - g_INIT_BEND1);
+	rotateX(- g_INIT_BEND1);
 	drawBone(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(PI * 0.01);
-	rotateX( - g_INIT_BEND2);
+	rotateX(- g_INIT_BEND2);
 	drawBone(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
@@ -437,7 +463,7 @@ void check_axis()
 	translate(50, 0, - 50);
 	fill(#ff0000);
 	sphere(10);/* x */
-	translate(- 50, 50, 0);
+	translate( - 50, 50, 0);
 	fill(#00ff00);
 	sphere(10);/* y */
 	popMatrix();
@@ -453,12 +479,21 @@ void getVals() {
 	g_t += g_dt;
 	g_output_file.print(g_t + ",");
 	
-	/* a */
+	/*-----------------------------------------------
+	a
+	-----------------------------------------------*/
+	/* MAF */
+	// for (int i = 0; i < 3; i++) {
+	// 	g_filtered_a[i].push(float(co[i + 1]));
+	// 	g_a[i] = g_filtered_a[i].get();
+	// 	g_output_file.print(float(co[i + 1]) + ",");
+	// }
+	/* LPF */
 	for (int i = 0; i < 3; i++) {
-		g_filtered_a[i].push(float(co[i + 1]));
-		g_a[i] = g_filtered_a[i].get();
 		g_output_file.print(float(co[i + 1]) + ",");
+		g_a[i] = g_filtered_a[i].calc(float(co[i + 1]));
 	}
+	/* その他出力 */
 	for (int i = 0;i < 3;i++) {
 		g_output_file.print(g_a[i] + ",");
 	}
@@ -529,7 +564,7 @@ void draw() {
 	
 	textFont(g_font, 20);
 	textAlign(LEFT, TOP);
-	text("Acc. : [" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
+	text("Acc.:[" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
 		"Time : " + nfs(g_t, 0, 2) + "[s]", 20, 20);
 	text("Euler angles : \n" + 
 		"Yaw(psi)  : "   + nfs(degrees(g_Euler[0]), 0, 2) + "\n" + 
