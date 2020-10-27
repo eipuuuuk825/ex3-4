@@ -11,9 +11,9 @@ float[] g_b = {0, 0, 0, 0, 0};
 PFont g_font;
 final int VIEW_SIZE_X = 800, VIEW_SIZE_Y = 600;
 
-// String g_filename = "HandMotion0.csv";
+ String g_filename = "HandMotion0.csv";
 // String g_filename = "MyMotion1.csv";
-String g_filename = "MyMotion2.csv";
+//String g_filename = "MyMotion2.csv";
 String[] g_lines;
 int g_ln = 0;
 int g_h_flag = 0;
@@ -179,16 +179,16 @@ void drawOya(float hand_size, float d) {
   rotateY(PI * 0.12);
   rotateX(- PI * 0.1);
   translate(hand_size * 0.08, 0, hand_size * 0.14);
-  drawCylinder(d_hira, h_hira);
+  drawBone(d_hira, h_hira);
   /* 1 */
   translate(0, 0, h_hira);
   rotateY( - PI * 0.1);
   rotateY(- g_yubi[g_YUBI_OYA].m_b * PI * 0.2);/* 屈伸 */
-  drawCylinder(d_1, h_1);
+  drawBone(d_1, h_1);
   /* 2 */
   translate(0, 0, h_1);
   rotateY(- g_yubi[g_YUBI_OYA].m_b * PI * 0.5);/* 屈伸 */
-  drawCylinder(d_2, h_2);
+  drawBone(d_2, h_2);
   /* 座標取得 */
   translate(0, 0, h_2);
   g_yubi[g_YUBI_OYA].get_pos();
@@ -215,24 +215,24 @@ void drawHito(float hand_size, float d) {
   /* hira */
   translate(hand_size * 0.08, 0, hand_size * 0.11);
   rotateY(PI * 0.037);
-  drawCylinder(d_hira, h_hira);
+  drawBone(d_hira, h_hira);
   /* 1 */
   translate(0, 0, h_hira);
   rotateY( - PI * 0.04);
   rotateX(- g_INIT_BEND1);
   rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.25);/* 屈伸 */
-  drawCylinder(d_1, h_1);
+  drawBone(d_1, h_1);
   /* 2 */
   translate(0, 0, h_1);
   rotateY(PI * 0.005);
   rotateX(- g_INIT_BEND2);
   rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
-  drawCylinder(d_2, h_2);
+  drawBone(d_2, h_2);
   /* 3 */
   translate(0, 0, h_2);
   rotateY(PI * 0.005);
   rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
-  drawCylinder(d_3, h_3);
+  drawBone(d_3, h_3);
   /* 座標取得 */
   translate(0, 0, h_3);
   g_yubi[g_YUBI_HITO].get_pos();
@@ -259,21 +259,21 @@ void drawNaka(float hand_size, float d) {
   /* hira */
   translate(0, 0, hand_size * 0.05);
   rotateY(PI * 0.02);
-  drawCylinder(d_hira, h_hira);
+  drawBone(d_hira, h_hira);
   /* 1 */
   translate(0, 0, h_hira);
   rotateY(- PI * 0.02);
   rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.25);/* 屈伸 */
-  drawCylinder(d_1, h_1);
+  drawBone(d_1, h_1);
   /* 2 */
   translate(0, 0, h_1);
   rotateX(- g_INIT_BEND2);
   rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
-  drawCylinder(d_2, h_2);
+  drawBone(d_2, h_2);
   /* 3 */
   translate(0, 0, h_2);
   rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
-  drawCylinder(d_3, h_3);
+  drawBone(d_3, h_3);
   /* 座標取得 */
   translate(0, 0, h_3);
   g_yubi[g_YUBI_NAKA].get_pos();
@@ -300,19 +300,19 @@ void drawKusuri(float hand_size, float d) {
   /* hira */
   translate(- hand_size * 0.08, 0, hand_size * 0.11);
   rotateY(- PI * 0.01);
-  drawCylinder(d_hira, h_hira);
+  drawBone(d_hira, h_hira);
   /* 1 */
   translate(0, 0, h_hira);
   rotateY(PI * 0.01);
   rotateX(- g_INIT_BEND1);
-  drawCylinder(d_1, h_1);
+  drawBone(d_1, h_1);
   /* 2 */
   translate(0, 0, h_1);
   rotateX(- g_INIT_BEND2);
-  drawCylinder(d_2, h_2);
+  drawBone(d_2, h_2);
   /* 3 */
   translate(0, 0, h_2);
-  drawCylinder(d_3, h_3);
+  drawBone(d_3, h_3);
   popMatrix();
 }
 
@@ -336,21 +336,21 @@ void drawKo(float hand_size, float d) {
   /* hira */
   translate(- hand_size * 0.08 * 2, 0, hand_size * 0.12);
   rotateY(- PI * 0.035);
-  drawCylinder(d_hira, h_hira);
+  drawBone(d_hira, h_hira);
   /* 1 */
   translate(0, 0, h_hira);
   rotateY(PI * 0.037);
   rotateX(- g_INIT_BEND1);
-  drawCylinder(d_1, h_1);
+  drawBone(d_1, h_1);
   /* 2 */
   translate(0, 0, h_1);
   rotateY(PI * 0.01);
   rotateX(- g_INIT_BEND2);
-  drawCylinder(d_2, h_2);
+  drawBone(d_2, h_2);
   /* 3 */
   translate(0, 0, h_2);
   rotateY(PI * 0.01);
-  drawCylinder(d_3, h_3);
+  drawBone(d_3, h_3);
   popMatrix();
 }
 
@@ -550,7 +550,7 @@ float[] quatTranslate(float[] x) {
 }
 
 // http://vormplus.be/blog/article/drawing-a-cylinder-with-processing
-void drawCylinder(float r2, float h) {
+void drawBone(float r2, float h) {
   final int sides = 10;
   final float r1 = 0;
 
