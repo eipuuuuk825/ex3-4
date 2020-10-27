@@ -146,12 +146,11 @@ class MAF/* 移動平均フィルタ */
 			return 0;
 		
 		float sum = 0;
-		for (int i = 0;i < m_q.m_n;i++)
+		for (int i = 0;i < m_q.m_len;i++)
 			sum += m_q.m_d[i];
-		return sum / m_q.m_n;
+		return sum / m_q.m_len;
 	}
 }
-
 
 /* b の正規化 */
 float[] g_b_max = {0, 0, 0, 0, 0};
@@ -452,8 +451,8 @@ void getVals() {
 	if (g_ln + 1 < g_lines.length - 1) g_ln++;
 	g_dt = float(co[0]);
 	g_t += g_dt;
-	g_output_file.print(g_t+",");
-
+	g_output_file.print(g_t + ",");
+	
 	/* a */
 	for (int i = 0; i < 3; i++) {
 		g_filtered_a[i].push(float(co[i + 1]));
