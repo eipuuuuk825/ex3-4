@@ -88,19 +88,14 @@ class Obstacle
 	}
 }
 
-class MAF/* 移動平均フィルタ */
+class Queue
 {
 	int m_n;
 	int m_len;
 	float[] m_d;
 	
-	MAF(int n)
+	Queue(int n)
 	 {
-		if (n % 2 == 0)
-		{
-			println("MAF の n は奇数である必要があります");
-			exit();
-		}
 		m_n = n;
 		m_len = 0;
 		m_d = new float[m_n];
@@ -108,12 +103,12 @@ class MAF/* 移動平均フィルタ */
 	
 	void p()
 	 {
-		for (int i = 0;i < this.m_len;i++)
-			print(this.m_d[i] + " ");
+		for (int i = 0;i < m_len;i++)
+			print(m_d[i] + " ");
 		println();
 	}
 	
-	void set(float d)
+	void push(float d)
 	 {
 		if (m_len == m_n)
 		{
@@ -126,16 +121,34 @@ class MAF/* 移動平均フィルタ */
 			m_len++;
 		}
 	}
+}
+
+class MAF/* 移動平均フィルタ */
+{
+	Queue m_q;
+	
+	MAF(int n)
+	 {
+		if (n % 2 == 0)
+		{
+			println("MAF の n は奇数である必要があります");
+			exit();
+		}
+		m_q = new Queue(n);
+	}
+	
+	void p() {m_q.p();}
+	void push(float d) {m_q.push(d);}
 	
 	float get()
 	 {
-		if (m_len < m_n)
+		if (m_q.m_len < m_q.m_n)
 			return 0;
 		
 		float sum = 0;
-		for (int i = 0;i < m_n;i++)
-			sum += m_d[i];
-		return sum / m_n;
+		for (int i = 0;i < m_q.m_n;i++)
+			sum += m_q.m_d[i];
+		return sum / m_q.m_n;
 	}
 }
 
@@ -167,7 +180,7 @@ Obstacle g_obs2 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 50, VIEW_SIZE_Y / 2 +
 Obstacle g_obs3 = new Obstacle(new Point(VIEW_SIZE_X / 2 + 125, VIEW_SIZE_Y / 2 + 300, - 300), 80);
 
 PrintWriter g_output_file;
-MAF[]g_filtered_a = {new MAF(7), new MAF(7), new MAF(7)};
+MAF[]g_filtered_a = {new MAF(3), new MAF(3), new MAF(3)};
 
 /*-----------------------------------------------
 *
@@ -437,20 +450,21 @@ void check_axis()
 void getVals() {  
 	String[] co = split(g_lines[g_ln], ',');
 	if (g_ln + 1 < g_lines.length - 1) g_ln++;
-	g_dt = float(co[0]) - g_t;
-	g_t = float(co[0]);
+	g_dt = float(co[0]);
+	g_t += g_dt;
+	g_output_file.print(g_t+",");
 
-  /* a */
+	/* a */
 	for (int i = 0; i < 3; i++) {
-		g_filtered_a[i].set(float(co[i + 1]));
+		g_filtered_a[i].push(float(co[i + 1]));
 		g_a[i] = g_filtered_a[i].get();
 		g_output_file.print(float(co[i + 1]) + ",");
 	}
-  for(int i=0;i<3;i++){
+	for (int i = 0;i < 3;i++) {
 		g_output_file.print(g_a[i] + ",");
-  }
+	}
 	g_output_file.println();
-
+	
 	for (int i = 0; i < 4; i++) g_q[i] = float(co[i + 4]);
 	for (int i = 0; i < 5; i++) g_b[i] = float(co[i + 8]);
 	for (int i = 0; i < 5; i++) if (g_b[i] > 20.0) g_b[i] = 20.0;
@@ -517,7 +531,7 @@ void draw() {
 	textFont(g_font, 20);
 	textAlign(LEFT, TOP);
 	text("Acc. : [" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
-		"Time : " + nfs(g_dt, 0, 2) + "[ms]", 20, 20);
+		"Time : " + nfs(g_t, 0, 2) + "[s]", 20, 20);
 	text("Euler angles : \n" + 
 		"Yaw(psi)  : "   + nfs(degrees(g_Euler[0]), 0, 2) + "\n" + 
 		"Pitch(theta) : " + nfs(degrees(g_Euler[1]), 0, 2) + "\n" + 
