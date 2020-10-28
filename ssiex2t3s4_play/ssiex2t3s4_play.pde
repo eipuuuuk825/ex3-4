@@ -40,12 +40,8 @@ class Yubi
 	Point m_p = new Point();
 	color m_c; 	/* 衝突時の色 */
 	float m_b; 	/* 屈伸度合い */
-	float m_r; 	/* 指先当たり判定の球の半径 */
 	
-	Yubi(color c, float r) {
-		m_c = c;
-		m_r = r;
-	}
+	Yubi(color c) {m_c = c;}
 	
 	void get_pos() {
 		m_p.m_x = modelX(0, 0, 0);
@@ -74,7 +70,7 @@ class Obstacle
 		fill(g_DEFAULT_COLOR);
 		for (int i = 0; i < yubi.length; i++)
 		{
-			if (yubi[i].get_dist(m_p) < yubi[i].m_r + this.m_r)
+			if (yubi[i].get_dist(m_p) < this.m_r)
 			{
 				fill(yubi[i].m_c);
 				break;
@@ -191,9 +187,9 @@ final float g_HAND_SIZE = 400; 	/* 手の大きさ */
 
 /* 指 */
 Yubi[] g_yubi = {
-	new Yubi(#ff0000, 1), 
-		new Yubi(#00ff00, 1), 
-		new Yubi(#0000ff, 1)
+	new Yubi(#ff0000), 
+		new Yubi(#00ff00), 
+		new Yubi(#0000ff)
 	};
 
 /* 障害物 */
