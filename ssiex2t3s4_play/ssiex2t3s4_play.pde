@@ -33,29 +33,73 @@ class Point
 		m_y = y;
 		m_z = z;
 	}
+	Point(Point p) {
+		m_x = p.m_x;
+		m_y = p.m_y;
+		m_z = p.m_z;
+	}
 }
 
 class Yubi
 {
-	Point m_p = new Point();
+	Point[]m_p;	/* 骨の端点の座標 */
 	color m_c; 	/* 衝突時の色 */
 	float m_b; 	/* 屈伸度合い */
-	float m_r; 	/* 指先当たり判定の球の半径 */
 	
-	Yubi(color c, float r) {
+	Yubi(int bone_num, color c) {
+		if (bone_num < 1) {
+			println("Yubi の bone_num には 1 以上の値を指定してください．");
+			exit();
+		}
+		m_p = new Point[bone_num + 1];
+		for (int i = 0;i < m_p.length;i++)
+			m_p[i] = new Point();
 		m_c = c;
-		m_r = r;
 	}
 	
-	void get_pos() {
-		m_p.m_x = modelX(0, 0, 0);
-		m_p.m_y = modelY(0, 0, 0);
-		m_p.m_z = modelZ(0, 0, 0);
+	void get_pos(int index) {
+		m_p[index].m_x = modelX(0, 0, 0);
+		m_p[index].m_y = modelY(0, 0, 0);
+		m_p[index].m_z = modelZ(0, 0, 0);
 	}
 	
-	float get_dist(Point p) {
-		return dist(p.m_x, p.m_y, p.m_z, 
-			m_p.m_x, m_p.m_y, m_p.m_z);
+	/* 点間距離 */
+	float get_dist(Point a, Point b) {
+		return dist(a.m_x, a.m_y, a.m_z, b.m_x, b.m_y, b.m_z);
+	}
+	
+	/* 直線との距離 */
+	float get_dist2(int index1, int index2, Point p) {
+		Point s = new Point(m_p[index1]);/* 始点 */
+		Point e = new Point(m_p[index2]);/* 終点 */
+		Point v = new Point(e.m_x - s.m_x, e.m_y - s.m_y, e.m_z - s.m_z);/* 方向ベクトル */
+		Point a = new Point(s);/* 始点 */
+		Point b = new Point(p);/* 点 */
+		
+		/* 点から直線へおろした垂線の直線との交点 */
+		float t = (v.m_x * (b.m_x - a.m_x) + v.m_y * (b.m_y - a.m_y) + v.m_z * (b.m_z - a.m_z)) / (v.m_x * v.m_x + v.m_y * v.m_y + v.m_z * v.m_z);
+		Point cross = new Point(a.m_x + v.m_x * t, a.m_y + v.m_y * t, a.m_z + v.m_z * t);
+		
+		float d = get_dist(p, cross);/* 直線と点の距離 */
+		float d_s = get_dist(s, p);/* 始点と点の距離 */
+		float d_e = get_dist(e, p);/* 終点と点の距離 */
+		
+		if (0 < t && t < 1) {
+			return d;
+		}
+		else{
+			if (d_s < d_e)return d_s;
+			else return d_e;
+		}
+	}
+	
+	float get_min_dist(Point p)	{
+		float min = get_dist2(0, 1, p);
+		for (int i = 1;i <= m_p.length - 2;i++) {
+			float tmp = get_dist2(i, i + 1, p);
+			if (min > tmp)min = tmp;
+		}
+		return min;
 	}
 }
 
@@ -74,7 +118,7 @@ class Obstacle
 		fill(g_DEFAULT_COLOR);
 		for (int i = 0; i < yubi.length; i++)
 		{
-			if (yubi[i].get_dist(m_p) < yubi[i].m_r + this.m_r)
+			if (yubi[i].get_min_dist(m_p) < this.m_r)
 			{
 				fill(yubi[i].m_c);
 				break;
@@ -191,9 +235,9 @@ final float g_HAND_SIZE = 400; 	/* 手の大きさ */
 
 /* 指 */
 Yubi[] g_yubi = {
-	new Yubi(#ff0000, 1), 
-		new Yubi(#00ff00, 1), 
-		new Yubi(#0000ff, 1)
+	new Yubi(2, #ff0000), 
+		new Yubi(3, #00ff00), 
+		new Yubi(3, #0000ff)
 	};
 
 /* 障害物 */
@@ -278,13 +322,15 @@ void drawOya(float hand_size, float d) {
 	rotateY( - PI * 0.1);
 	rotateY(- g_yubi[g_YUBI_OYA].m_b * PI * 0.2);/* 屈伸 */
 	drawBone(d_1, h_1);
+	g_yubi[g_YUBI_OYA].get_pos(0);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(- g_yubi[g_YUBI_OYA].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_2, h_2);
+	g_yubi[g_YUBI_OYA].get_pos(1);
 	/* 座標取得 */
 	translate(0, 0, h_2);
-	g_yubi[g_YUBI_OYA].get_pos();
+	g_yubi[g_YUBI_OYA].get_pos(2);
 	popMatrix();
 }
 
@@ -315,20 +361,23 @@ void drawHito(float hand_size, float d) {
 	rotateX(- g_INIT_BEND1);
 	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.25);/* 屈伸 */
 	drawBone(d_1, h_1);
+	g_yubi[g_YUBI_HITO].get_pos(0);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(PI * 0.005);
 	rotateX(- g_INIT_BEND2);
 	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_2, h_2);
+	g_yubi[g_YUBI_HITO].get_pos(1);
 	/* 3 */
 	translate(0, 0, h_2);
 	rotateY(PI * 0.005);
 	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_3, h_3);
+	g_yubi[g_YUBI_HITO].get_pos(2);
 	/* 座標取得 */
 	translate(0, 0, h_3);
-	g_yubi[g_YUBI_HITO].get_pos();
+	g_yubi[g_YUBI_HITO].get_pos(3);
 	popMatrix();
 }
 
@@ -358,18 +407,21 @@ void drawNaka(float hand_size, float d) {
 	rotateY(- PI * 0.02);
 	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.25);/* 屈伸 */
 	drawBone(d_1, h_1);
+	g_yubi[g_YUBI_NAKA].get_pos(0);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateX(- g_INIT_BEND2);
 	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_2, h_2);
+	g_yubi[g_YUBI_NAKA].get_pos(1);
 	/* 3 */
 	translate(0, 0, h_2);
 	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
 	drawBone(d_3, h_3);
+	g_yubi[g_YUBI_NAKA].get_pos(2);
 	/* 座標取得 */
 	translate(0, 0, h_3);
-	g_yubi[g_YUBI_NAKA].get_pos();
+	g_yubi[g_YUBI_NAKA].get_pos(3);
 	popMatrix();
 }
 
@@ -570,7 +622,7 @@ void draw() {
 		"Yaw(psi)  : "   + nfs(degrees(g_Euler[0]), 0, 2) + "\n" + 
 		"Pitch(theta) : " + nfs(degrees(g_Euler[1]), 0, 2) + "\n" + 
 		"Roll(phi)  : "  + nfs(degrees(g_Euler[2]), 0, 2), 350, 20);
-	text("Flexions : \n" + nfs(g_b[0], 0, 2) + "\n" + nfs(g_b[1], 0, 2) + "\n" + nfs(g_b[2], 0, 2) + "\n" + nfs(g_b[3], 0, 2) + "\n" + nfs(g_b[4], 0, 2), 600, 20);
+	text("Flexions : \n" + nfs(g_yubi[g_YUBI_OYA].m_b, 0, 2) + "\n" + nfs(g_yubi[g_YUBI_HITO].m_b, 0, 2) + "\n" + nfs(g_yubi[g_YUBI_NAKA].m_b, 0, 2), 600, 20);
 	
 	drawHand();
 	drawObstacle();
