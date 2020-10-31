@@ -11,7 +11,7 @@ float[] g_b = {0, 0, 0, 0, 0};
 PFont g_font;
 final int VIEW_SIZE_X = 800, VIEW_SIZE_Y = 600;
 
- //String g_filename = "HandMotion0.csv";
+//String g_filename = "HandMotion0.csv";
 //String g_filename = "MyMotion1.csv";
 String g_filename = "MyMotion2.csv";
 String[] g_lines;
@@ -32,6 +32,75 @@ class Point
 		m_x = x;
 		m_y = y;
 		m_z = z;
+	}
+	void get_pos() {
+		m_x = modelX(0, 0, 0);
+		m_y = modelY(0, 0, 0);
+		m_z = modelZ(0, 0, 0);
+	}
+}
+
+class MyBox
+{
+	Point[]m_p = new Point[8];
+	float m_width2, m_height2, m_depth2;
+	
+	MyBox(int width_, int height_, int depth_) {
+		for (int i = 0;i < m_p.length;i++)
+			m_p[i] = new Point();
+		m_width2 = width_ / 2.0;
+		m_height2 = height_ / 2.0;
+		m_depth2 = depth_ / 2.0;
+	}
+	
+	void calc() {
+		m_p[0] = new Point(m_width2, - m_height2, m_depth2);
+		m_p[1] = new Point(m_width2, - m_height2, - m_depth2);
+		m_p[2] = new Point(- m_width2, - m_height2, - m_depth2);
+		m_p[3] = new Point(- m_width2, - m_height2, m_depth2);
+		m_p[4] = new Point(m_width2, m_height2, m_depth2);
+		m_p[5] = new Point(m_width2, m_height2, - m_depth2);
+		m_p[6] = new Point(- m_width2, m_height2, - m_depth2);
+		m_p[7] = new Point(- m_width2, m_height2, m_depth2);
+	}
+	
+	void draw() {
+		beginShape();
+		vertex(m_p[0].m_x, m_p[0].m_y, m_p[0].m_z);
+		vertex(m_p[1].m_x, m_p[1].m_y, m_p[1].m_z);
+		vertex(m_p[2].m_x, m_p[2].m_y, m_p[2].m_z);
+		vertex(m_p[3].m_x, m_p[3].m_y, m_p[3].m_z);
+		endShape(CLOSE);
+		beginShape();
+		vertex(m_p[4].m_x, m_p[4].m_y, m_p[4].m_z);
+		vertex(m_p[7].m_x, m_p[7].m_y, m_p[7].m_z);
+		vertex(m_p[6].m_x, m_p[6].m_y, m_p[6].m_z);
+		vertex(m_p[5].m_x, m_p[5].m_y, m_p[5].m_z);
+		endShape(CLOSE);
+		beginShape();
+		vertex(m_p[0].m_x, m_p[0].m_y, m_p[0].m_z);
+		vertex(m_p[3].m_x, m_p[3].m_y, m_p[3].m_z);
+		vertex(m_p[7].m_x, m_p[7].m_y, m_p[7].m_z);
+		vertex(m_p[4].m_x, m_p[4].m_y, m_p[4].m_z);
+		endShape(CLOSE);
+		beginShape();
+		vertex(m_p[1].m_x, m_p[1].m_y, m_p[1].m_z);
+		vertex(m_p[5].m_x, m_p[5].m_y, m_p[5].m_z);
+		vertex(m_p[6].m_x, m_p[6].m_y, m_p[6].m_z);
+		vertex(m_p[2].m_x, m_p[2].m_y, m_p[2].m_z);
+		endShape(CLOSE);
+		beginShape();
+		vertex(m_p[0].m_x, m_p[0].m_y, m_p[0].m_z);
+		vertex(m_p[4].m_x, m_p[4].m_y, m_p[4].m_z);
+		vertex(m_p[5].m_x, m_p[5].m_y, m_p[5].m_z);
+		vertex(m_p[1].m_x, m_p[1].m_y, m_p[1].m_z);
+		endShape(CLOSE);
+		beginShape();
+		vertex(m_p[2].m_x, m_p[2].m_y, m_p[2].m_z);
+		vertex(m_p[6].m_x, m_p[6].m_y, m_p[6].m_z);
+		vertex(m_p[7].m_x, m_p[7].m_y, m_p[7].m_z);
+		vertex(m_p[3].m_x, m_p[3].m_y, m_p[3].m_z);
+		endShape(CLOSE);
 	}
 }
 
@@ -57,30 +126,22 @@ class Yubi
 
 class Obstacle
 {
-	Point m_p;
 	float m_r;
 	
-	Obstacle(Point pos_self, float r_self)
-	 {
-		m_p = pos_self;
-		m_r = r_self;
-	}
+	Obstacle(float r_self) {m_r = r_self;}
 	
 	void draw(Yubi yubi[]) {
 		fill(g_DEFAULT_COLOR);
-		for (int i = 0; i < yubi.length; i++)
-		{
-			if (yubi[i].get_dist(m_p) < this.m_r)
-			{
+		Point center = new Point();
+		center.get_pos();
+		
+		for (int i = 0; i < yubi.length; i++) {
+			if (yubi[i].get_dist(center) < this.m_r) {
 				fill(yubi[i].m_c);
 				break;
 			}
 		}
-		
-		pushMatrix();
-		translate(m_p.m_x, m_p.m_y, m_p.m_z);
 		sphere(m_r);
-		popMatrix();
 		fill(g_DEFAULT_COLOR);
 	}
 }
@@ -92,21 +153,21 @@ class Queue
 	float[] m_d;
 	
 	Queue(int n)
-	 {
+	{
 		m_n = n;
 		m_len = 0;
 		m_d = new float[m_n];
 	}
 	
 	void p()
-	 {
+	{
 		for (int i = 0;i < m_len;i++)
 			print(m_d[i] + " ");
 		println();
 	}
 	
 	void push(float d)
-	 {
+	{
 		if (m_len == m_n)
 		{
 			for (int i = 0;i < m_n - 1;i++)m_d[i] = m_d[i + 1];
@@ -130,7 +191,7 @@ class MAF/* 移動平均フィルタ */
 	void push(float d) {m_q.push(d);}
 	
 	float get()
-	 {
+	{
 		if (m_q.m_len < m_q.m_n)
 			return 0;
 		
@@ -156,7 +217,7 @@ class LPF/* ローパスフィルタ */
 	}
 	
 	float calc(float d)
-	 {
+	{
 		float ret = m_pre * m_a + d * (1 - m_a);
 		m_pre = ret;
 		return ret;
@@ -185,9 +246,10 @@ Yubi[] g_yubi = {
 	};
 
 /* 障害物 */
-Obstacle g_obs1 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 200, VIEW_SIZE_Y / 2 - 50, - 300), 80);
-Obstacle g_obs2 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 100, VIEW_SIZE_Y / 2 + 75, -10), 50);
-Obstacle g_obs3 = new Obstacle(new Point(VIEW_SIZE_X / 2 + 125, VIEW_SIZE_Y / 2 + 290, -300), 80);
+Obstacle g_obs1 = new Obstacle(80);
+Obstacle g_obs2 = new Obstacle(50);
+Obstacle g_obs3 = new Obstacle(80);
+MyBox g_box = new MyBox(100, 200, 300);
 
 /* 平滑化 */
 PrintWriter g_output_file;	/* 平滑化結果出力用 */
@@ -197,18 +259,41 @@ LPF[]g_filtered_a = {new LPF(0.5), new LPF(0.5), new LPF(0.5)};
 
 /*-----------------------------------------------
 *
-* 障害物を描画
+*障害物を描画
 *
 -----------------------------------------------*/
 void drawObstacle() {
+	pushMatrix();
+	translate(VIEW_SIZE_X / 2, VIEW_SIZE_Y / 2, 0);
+	
+	/* 球 */
+	// pushMatrix();
+	// translate( - 200,  - 50, - 300);
 	// g_obs1.draw(g_yubi);
-	g_obs2.draw(g_yubi);
+	// popMatrix();
+	// pushMatrix();
+	// translate(- 100,  + 75, - 10);
+	// g_obs2.draw(g_yubi);
+	// popMatrix();
+	// pushMatrix();
+	// translate( + 125,  + 290, - 300);
 	// g_obs3.draw(g_yubi);
+	// popMatrix();
+	
+	/* 直方体 */
+	pushMatrix();
+	rotateX( - g_t * 0.75);
+	rotateY(- g_t);
+	g_box.calc();
+	g_box.draw();
+	popMatrix();
+	
+	popMatrix();
 }
 
 /*-----------------------------------------------
 *
-* 手を描画
+*手を描画
 *
 -----------------------------------------------*/
 void drawHand() {  
@@ -245,7 +330,7 @@ void drawHand() {
 
 /*-----------------------------------------------
 *
-* 親指を描画
+*親指を描画
 *
 -----------------------------------------------*/
 void drawOya(float hand_size, float d) {
@@ -280,7 +365,7 @@ void drawOya(float hand_size, float d) {
 
 /*-----------------------------------------------
 *
-* 人差し指を描画
+*人差し指を描画
 *
 -----------------------------------------------*/
 void drawHito(float hand_size, float d) {
@@ -324,7 +409,7 @@ void drawHito(float hand_size, float d) {
 
 /*-----------------------------------------------
 *
-* 中指を描画
+*中指を描画
 *
 -----------------------------------------------*/
 void drawNaka(float hand_size, float d) {
@@ -365,7 +450,7 @@ void drawNaka(float hand_size, float d) {
 
 /*-----------------------------------------------
 *
-* 薬指を描画
+*薬指を描画
 *
 -----------------------------------------------*/
 void drawKusuri(float hand_size, float d) {
@@ -401,7 +486,7 @@ void drawKusuri(float hand_size, float d) {
 
 /*-----------------------------------------------
 *
-* 小指を描画
+*小指を描画
 *
 -----------------------------------------------*/
 void drawKo(float hand_size, float d) {
@@ -439,7 +524,7 @@ void drawKo(float hand_size, float d) {
 
 /*-----------------------------------------------
 *
-* 軸の方向を確認するためのオブジェクトを描画
+*軸の方向を確認するためのオブジェクトを描画
 *
 -----------------------------------------------*/
 void check_axis()
@@ -702,7 +787,7 @@ void drawBone(float r2, float h) {
 	}
 	endShape(CLOSE);
 	popMatrix();
-} 
+}
 
 void settings() {
 	size(VIEW_SIZE_X, VIEW_SIZE_Y, P3D);
