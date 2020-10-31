@@ -11,9 +11,9 @@ float[] g_b = {0, 0, 0, 0, 0};
 PFont g_font;
 final int VIEW_SIZE_X = 800, VIEW_SIZE_Y = 600;
 
-String g_filename = "HandMotion0.csv";
-// String g_filename = "MyMotion1.csv";
-//String g_filename = "MyMotion2.csv";
+ //String g_filename = "HandMotion0.csv";
+//String g_filename = "MyMotion1.csv";
+String g_filename = "MyMotion2.csv";
 String[] g_lines;
 int g_ln = 0;
 int g_h_flag = 0;
@@ -124,15 +124,7 @@ class MAF/* 移動平均フィルタ */
 {
 	Queue m_q;
 	
-	MAF(int n)
-	 {
-		if (n % 2 == 0)
-		{
-			println("MAF の n は奇数である必要があります");
-			exit();
-		}
-		m_q = new Queue(n);
-	}
+	MAF(int n) {m_q = new Queue(2 * n + 1);}
 	
 	void p() {m_q.p();}
 	void push(float d) {m_q.push(d);}
@@ -183,7 +175,7 @@ final color g_HAND_COLOR = #888888; 		/* 手の色 */
 final int g_YUBI_OYA = 0;
 final int g_YUBI_HITO = 1;
 final int g_YUBI_NAKA = 2;
-final float g_HAND_SIZE = 400; 	/* 手の大きさ */
+final float g_HAND_SIZE = 500; 	/* 手の大きさ */
 
 /* 指 */
 Yubi[] g_yubi = {
@@ -193,14 +185,14 @@ Yubi[] g_yubi = {
 	};
 
 /* 障害物 */
-Obstacle g_obs1 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 150, VIEW_SIZE_Y / 2 + 50, - 150), 80);
-Obstacle g_obs2 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 50, VIEW_SIZE_Y / 2 + 175, - 150), 80);
-Obstacle g_obs3 = new Obstacle(new Point(VIEW_SIZE_X / 2 + 125, VIEW_SIZE_Y / 2 + 300, - 300), 80);
+Obstacle g_obs1 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 200, VIEW_SIZE_Y / 2 - 50, - 300), 80);
+Obstacle g_obs2 = new Obstacle(new Point(VIEW_SIZE_X / 2 - 100, VIEW_SIZE_Y / 2 + 75, -10), 50);
+Obstacle g_obs3 = new Obstacle(new Point(VIEW_SIZE_X / 2 + 125, VIEW_SIZE_Y / 2 + 290, -300), 80);
 
 /* 平滑化 */
 PrintWriter g_output_file;	/* 平滑化結果出力用 */
-// MAF[]g_filtered_a = {new MAF(7), new MAF(7), new MAF(7)};
-LPF[]g_filtered_a = {new LPF(0.75), new LPF(0.75), new LPF(0.75)};
+// MAF[]g_filtered_a = {new MAF(2), new MAF(2), new MAF(2)};
+LPF[]g_filtered_a = {new LPF(0.5), new LPF(0.5), new LPF(0.5)};
 
 
 /*-----------------------------------------------
@@ -209,9 +201,9 @@ LPF[]g_filtered_a = {new LPF(0.75), new LPF(0.75), new LPF(0.75)};
 *
 -----------------------------------------------*/
 void drawObstacle() {
-	g_obs1.draw(g_yubi);
+	// g_obs1.draw(g_yubi);
 	g_obs2.draw(g_yubi);
-	g_obs3.draw(g_yubi);
+	// g_obs3.draw(g_yubi);
 }
 
 /*-----------------------------------------------
@@ -228,14 +220,16 @@ void drawHand() {
 	shininess(5.0);
 	
 	pushMatrix();
-	translate(VIEW_SIZE_X / 2 + 170, VIEW_SIZE_Y / 2 + 100, 0);
-	rotateZ(- g_Euler[2]);
-	rotateY(- g_Euler[0]);
-	rotateX(- g_Euler[1]);
-	rotateY(PI);
+	translate(VIEW_SIZE_X / 2 + 170, VIEW_SIZE_Y / 2 , 0);
+	// translate(VIEW_SIZE_X / 2, VIEW_SIZE_Y / 2, 100);
+	rotateZ( - g_Euler[2]);
+	rotateY( - g_Euler[0]);
+	rotateX( - g_Euler[1]);
+	rotateY(PI);				/* 必要な回転 */
 	
-	// rotateX(PI / 2); 		/* 見やすくするために回転 */
-	// rotateZ(- PI * 0.4);	/* 見やすくするために回転 */
+	// rotateX(PI * 0.2); 		/* 見やすくするために回転 */
+	// rotateY(  PI * 0.25);	/* 見やすくするための回転 */
+	// rotateZ( - PI * 0.3);	/* 見やすくするために回転 */
 	
 	final float d = g_HAND_SIZE * 0.05;
 	fill(#ffffff);
@@ -309,13 +303,13 @@ void drawHito(float hand_size, float d) {
 	translate(0, 0, h_hira);
 	rotateY( - PI * 0.04);
 	rotateX(- g_INIT_BEND1);
-	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.25);/* 屈伸 */
+	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.1);/* 屈伸 */
 	drawBone(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateY(PI * 0.005);
 	rotateX(- g_INIT_BEND2);
-	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.5);/* 屈伸 */
+	rotateX(- g_yubi[g_YUBI_HITO].m_b * PI * 0.52);/* 屈伸 */
 	drawBone(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
@@ -352,16 +346,16 @@ void drawNaka(float hand_size, float d) {
 	/* 1 */
 	translate(0, 0, h_hira);
 	rotateY(- PI * 0.02);
-	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.25);/* 屈伸 */
+	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.1);/* 屈伸 */
 	drawBone(d_1, h_1);
 	/* 2 */
 	translate(0, 0, h_1);
 	rotateX(- g_INIT_BEND2);
-	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
+	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.52);/* 屈伸 */
 	drawBone(d_2, h_2);
 	/* 3 */
 	translate(0, 0, h_2);
-	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.5);/* 屈伸 */
+	rotateX( - g_yubi[g_YUBI_NAKA].m_b * PI * 0.45);/* 屈伸 */
 	drawBone(d_3, h_3);
 	/* 座標取得 */
 	translate(0, 0, h_3);
@@ -523,7 +517,6 @@ void getVals() {
 			break;
 		}
 	}
-	//println(b_norm[YUBI_OYA]+", "+b_norm[YUBI_HITO]+", "+b_norm[YUBI_NAKA]);
 }
 
 void draw() {
@@ -545,10 +538,10 @@ void draw() {
 	
 	if (g_hq != null) { // use home quaternion
 		quaternionToEuler(quatProd(g_hq, g_q), g_Euler);
-		text("Disable home position by pressing \"n\"", 20, VIEW_SIZE_Y - 30);
+		// text("Disable home position by pressing \"n\"", 20, VIEW_SIZE_Y - 30);
 	} else {
 		quaternionToEuler(g_q, g_Euler);
-		text("Point FreeIMU's X axis to your monitor then press \"h\"", 20, VIEW_SIZE_Y - 30);
+		// text("Point FreeIMU's X axis to your monitor then press \"h\"", 20, VIEW_SIZE_Y - 30);
 	}
 	
 	for (int i = 0; i < 3; i++) g_ac[i] = g_a[i] * (9.8 / 272.5);
@@ -558,19 +551,26 @@ void draw() {
 	g_av[1] = - g_af[1] + 9.61;
 	g_av[2] = - g_af[2];
 	
+	drawStr();
+	// drawGraph();	
+	
+	drawHand();
+	drawObstacle();
+}
+
+void drawStr() {
 	textFont(g_font, 20);
 	textAlign(LEFT, TOP);
-	text("Acc.:[" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
+	text("Acc. : [" + nfs(g_av[0], 0, 2) + ", " + nfs(g_av[1], 0, 2) + ", " + nfs(g_av[2], 0, 2) + "]\n" +
 		"Time : " + nfs(g_t, 0, 2) + "[s]", 20, 20);
 	text("Euler angles : \n" + 
 		"Yaw(psi)  : "   + nfs(degrees(g_Euler[0]), 0, 2) + "\n" + 
 		"Pitch(theta) : " + nfs(degrees(g_Euler[1]), 0, 2) + "\n" + 
 		"Roll(phi)  : "  + nfs(degrees(g_Euler[2]), 0, 2), 350, 20);
-	text("Flexions : \n" + nfs(g_b[0], 0, 2) + "\n" + nfs(g_b[1], 0, 2) + "\n" + nfs(g_b[2], 0, 2) + "\n" + nfs(g_b[3], 0, 2) + "\n" + nfs(g_b[4], 0, 2), 600, 20);
-	
-	drawHand();
-	drawObstacle();
-	
+	text("Flexions : \n" + nfs(g_yubi[g_YUBI_OYA].m_b, 0, 2) + "\n" + nfs(g_yubi[g_YUBI_HITO].m_b, 0, 2) + "\n" + nfs(g_yubi[g_YUBI_NAKA].m_b, 0, 2), 600, 20);
+}
+
+void drawGraph() {
 	int igx = 20, igy = 200, ghh = 50, scl = 2;
 	for (int i = 0; i < g_Data_num; i++) {
 		stroke(0, 255, 0);
