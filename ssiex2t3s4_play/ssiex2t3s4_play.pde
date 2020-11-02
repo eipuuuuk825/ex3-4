@@ -401,7 +401,7 @@ void drawLine(PVector s, PVector e, color c) {
 -----------------------------------------------*/
 void drawObstacle() {
 	pushMatrix();
-	translate(VIEW_SIZE_X / 2 - 100, VIEW_SIZE_Y / 2 + 100, - 200);
+	translate(VIEW_SIZE_X / 2 - 300, VIEW_SIZE_Y / 2 + 100, - 200);
 	
 	/* 球 */
 	// pushMatrix();
@@ -421,6 +421,7 @@ void drawObstacle() {
 	pushMatrix();
 	// rotateX(- PI * 0.1);
 	rotateY(- PI * 0.1);
+	rotateY(- PI * 0.5);
 	rotateZ( PI * 0.05);
 	translate( - 200, 0, 0);
 	if (g_box.is_collision(g_yubi[g_YUBI_HITO].m_p)) 
